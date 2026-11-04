@@ -144,11 +144,11 @@ function Options() {
             {hasToken && <button onClick={clearToken}>削除</button>}
           </div>
           <div class="hint">
-            fine-grained トークンで、対象リポジトリの <b>Pull requests: Read</b> を付ける。
-            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">
+            関わる PR を全部拾うには、classic トークンでスコープ <b>repo</b> を付ける（リポジトリを選ばなくてよい）。
+            <a href="https://github.com/settings/tokens/new" target="_blank" rel="noreferrer">
               作成ページ
             </a>
-            。保存先は端末内 (storage.local) のみ。
+            。SSO の org は作成後に「Configure SSO」で認可。保存先は端末内 (storage.local) のみ。
           </div>
         </div>
         <div class="field">

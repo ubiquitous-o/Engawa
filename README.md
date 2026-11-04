@@ -1,6 +1,8 @@
 <p align="center"><img src="public/icons/icon128.png" width="96" height="96" alt="Engawa icon"></p>
 
-# Engawa（縁側）
+# Engawa
+
+[English](README.en.md)
 
 家の横に張り出した板の間、縁側。Chrome のサイドパネルに「お気に入り・ブックマーク・GitHub PR・開いているタブ」を縦に並べる、自分用の Manifest V3 拡張。
 永続データはすべて Chrome のブックマークに置く（pin タブは使わない）。お気に入りもブックマークバーのフォルダそのもの。拡張を消しても、別ブラウザに移っても、データはそのまま残る。
@@ -23,7 +25,9 @@ npm run build
 
 ## GitHub 連携
 
-1. [fine-grained トークン](https://github.com/settings/personal-access-tokens/new) を作る。対象リポジトリに **Pull requests: Read** を付ける
+1. トークンを作る。自分が関わる PR を全部拾いたいので、リポジトリを手で選ばない種類にする
+   - **Classic トークン**（推奨）: [作成ページ](https://github.com/settings/tokens/new) でスコープ **`repo`** にチェック。自分のリポジトリも所属 org のリポジトリも、後から招待されたものも全部対象になる。SSO を使う org は、作成後に「Configure SSO」でその org を認可する
+   - Fine-grained トークンでもよいが、「All repositories」にしても所有者 1 つ分しかカバーできない。org をまたぐなら classic にする
 2. 拡張の設定画面（サイドパネル右上の歯車）でトークンを入力して保存。「接続テスト」でログイン名が返れば OK
 3. 5 分ごと（設定で変更可）に `Engawa/PR/レビュー依頼` と `Engawa/PR/自分のPR` が自動で同期される
 
@@ -75,8 +79,3 @@ scripts/gen-icons.mjs     # アイコン PNG を生成（npm run icons）
 ```
 
 Manifest V3 / TypeScript / Vite / Preact。外部サーバーは使わず、通信先は GitHub API だけ。
-
-## 自動ピクチャーインピクチャー
-
-未実装。Chrome 標準の自動 PiP（`chrome://settings/content/automaticPictureInPicture` でサイトごとに許可）で足りるか先に試す。
-足りない場合だけ、コンテンツスクリプトで `navigator.mediaSession.setActionHandler("enterpictureinpicture", …)` を登録する方式を追加する。
