@@ -35,7 +35,9 @@ export default defineConfig({
     outDir: resolve(here, 'dist'),
     emptyOutDir: true,
     target: 'chrome116',
-    modulePreload: { polyfill: false },
+    // 拡張ページでは <link rel="modulepreload"> が「cross-world extension resource mismatch」の
+    // 警告を出して無視されるだけなので、出力しない（チャンクは import で普通に読まれる）
+    modulePreload: false,
     rollupOptions: {
       input: {
         sidepanel: resolve(root, 'sidepanel/index.html'),
