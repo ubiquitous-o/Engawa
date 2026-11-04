@@ -24,6 +24,8 @@ npm run build
 
 お気に入りは専用フォルダを持たず、ブックマークバー配下の好きなフォルダを「お気に入りとして表示」する。複数選ぶとフォルダごとにセクションが並ぶ。未設定ならブックマークバー直下。
 
+拡張 ID は `manifest.json` の `key`（公開鍵）で固定している（`lmjcicaaeilbjpcbimnclhafocijlifc`）。パッケージ化されていない拡張は本来フォルダの場所から ID が決まるので、Releases の zip を別の場所に展開して読み込み直すと別の拡張扱いになり設定が消えるが、`key` があればどこから読み込んでも同じ ID になり、設定・トークン・お気に入りフォルダの選択がそのまま残る。同じ ID の拡張は同時に 1 つしか読み込めないので、入れ替えるときは古い方を削除してから読み込む。`key` は公開鍵で秘密ではなく、パッケージ化されていない拡張の読み込みには秘密鍵は要らないので、鍵の管理は何もない。
+
 開発中は `npm run dev`（`vite build --watch`）で `dist/` を更新し続け、`chrome://extensions` の更新ボタンで再読み込みする。
 
 リリースは `package.json` の `version` を上げて `v` 付きのタグを push すると、GitHub Actions が zip を作って Releases に添付する。手元で zip を作るだけなら `npm run package`（`release/` に出る）。
