@@ -19,9 +19,17 @@ const KEY_FAV_FOLDER = 'favoritesFolderId';
 
 // ---- 設定（sync） ----
 
+function mergeSettings(stored: Partial<Settings> | undefined): Settings {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...(stored ?? {}),
+    theme: { ...DEFAULT_SETTINGS.theme, ...(stored?.theme ?? {}) },
+  };
+}
+
 export async function getSettings(): Promise<Settings> {
   const r = await chrome.storage.sync.get(KEY_SETTINGS);
-  return { ...DEFAULT_SETTINGS, ...((r[KEY_SETTINGS] as Partial<Settings> | undefined) ?? {}) };
+  return mergeSettings(r[KEY_SETTINGS] as Partial<Settings> | undefined);
 }
 
 export async function updateSettings(patch: Partial<Settings>): Promise<Settings> {
@@ -33,7 +41,7 @@ export async function updateSettings(patch: Partial<Settings>): Promise<Settings
 export function onSettingsChanged(cb: (s: Settings) => void): () => void {
   const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
     if (area === 'sync' && changes[KEY_SETTINGS]) {
-      cb({ ...DEFAULT_SETTINGS, ...((changes[KEY_SETTINGS].newValue as Partial<Settings>) ?? {}) });
+      cb(mergeSettings(changes[KEY_SETTINGS].newValue as Partial<Settings> | undefined));
     }
   };
   chrome.storage.onChanged.addListener(listener);

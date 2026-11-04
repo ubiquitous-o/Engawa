@@ -9,7 +9,18 @@ import {
   setToken,
   updateSettings,
 } from '@shared/storage';
-import { ACCENT_PRESETS, DEFAULT_SETTINGS, INITIAL_PR_SYNC_STATE, type PRSyncState, type Settings } from '@shared/types';
+import { applyTheme } from '@shared/theme';
+import {
+  ACCENT_PRESETS,
+  DEFAULT_SETTINGS,
+  DEFAULT_THEME,
+  INITIAL_PR_SYNC_STATE,
+  THEME_PRESETS,
+  type CustomTheme,
+  type PRSyncState,
+  type Settings,
+  type Theme,
+} from '@shared/types';
 
 function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
@@ -63,9 +74,8 @@ function Options() {
     return onPRSyncStateChanged(setSync);
   }, []);
 
-  useEffect(() => {
-    document.documentElement.style.setProperty('--accent', settings.accentColor);
-  }, [settings.accentColor]);
+  // 設定画面自身にも同じテーマを当てるので、スライダーを動かすとその場で見える
+  useEffect(() => applyTheme(settings), [settings]);
 
   const flash = () => setSaved(Date.now());
 
@@ -73,6 +83,28 @@ function Options() {
     const next = await updateSettings(p);
     setSettings(next);
     flash();
+  };
+
+  // スライダーは動かしている間はローカル state だけ更新し、離したら保存する
+  const previewTheme = (p: Partial<Theme>) => setSettings((s) => ({ ...s, theme: { ...s.theme, ...p } }));
+  const saveTheme = (p: Partial<Theme>) => void patch({ theme: { ...settings.theme, ...p } });
+  const theme = settings.theme;
+  const presetSelected = (c1: string, c2: string) =>
+    theme.color1.toLowerCase() === c1 && (theme.mode === 'solid' || theme.color2.toLowerCase() === c2);
+
+  // ---- 自分のプリセット ----
+  const customSelected = (c: CustomTheme) =>
+    (['mode', 'color1', 'color2', 'angle', 'intensity', 'grain'] as const).every((k) => c.theme[k] === theme[k]);
+  const saveCustomTheme = () => {
+    const n = settings.customThemes.length + 1;
+    const name = window.prompt('プリセットの名前', `カスタム ${n}`);
+    if (name === null) return;
+    const item: CustomTheme = { id: `${Date.now()}`, name: name.trim() || `カスタム ${n}`, theme: { ...theme } };
+    void patch({ customThemes: [...settings.customThemes, item] });
+  };
+  const deleteCustomTheme = (c: CustomTheme) => {
+    if (!window.confirm(`「${c.name}」を削除する？`)) return;
+    void patch({ customThemes: settings.customThemes.filter((x) => x.id !== c.id) });
   };
 
   /** GitHub.com 以外の API を使うときはそのホストの権限を要求する */
@@ -225,6 +257,88 @@ function Options() {
           <label class={`swatch custom ${!isPreset ? 'selected' : ''}`} style={{ '--c': settings.accentColor } as Record<string, string>} title="カスタム">
             <input type="color" value={settings.accentColor} onChange={(e) => void patch({ accentColor: (e.target as HTMLInputElement).value })} />
           </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>背景</h2>
+        <div class="theme-presets">
+          {THEME_PRESETS.map((p) => (
+            <button
+              key={p.name}
+              class={`theme-preset ${presetSelected(p.color1, p.color2) ? 'selected' : ''}`}
+              style={{ '--c1': p.color1, '--c2': p.color2 } as Record<string, string>}
+              title={p.name}
+              aria-label={p.name}
+              onClick={() => saveTheme({ mode: 'gradient', color1: p.color1, color2: p.color2 })}
+            />
+          ))}
+          {settings.customThemes.map((c) => (
+            <span key={c.id} class={`theme-preset-wrap ${customSelected(c) ? 'selected' : ''}`}>
+              <button
+                class="theme-preset"
+                style={{ '--c1': c.theme.color1, '--c2': c.theme.mode === 'gradient' ? c.theme.color2 : c.theme.color1, '--a': `${c.theme.angle}deg` } as Record<string, string>}
+                title={c.name}
+                aria-label={c.name}
+                onClick={() => saveTheme(c.theme)}
+              />
+              <button class="theme-preset-del" title={`「${c.name}」を削除`} aria-label={`${c.name} を削除`} onClick={() => deleteCustomTheme(c)}>
+                ×
+              </button>
+            </span>
+          ))}
+          <button class="theme-preset add" title="今の背景をプリセットとして保存" aria-label="プリセットを追加" onClick={saveCustomTheme}>
+            +
+          </button>
+        </div>
+        <div class="theme-row">
+          <span>種類</span>
+          <div class="seg">
+            <button class={theme.mode === 'gradient' ? 'on' : ''} onClick={() => saveTheme({ mode: 'gradient' })}>
+              グラデーション
+            </button>
+            <button class={theme.mode === 'solid' ? 'on' : ''} onClick={() => saveTheme({ mode: 'solid' })}>
+              単色
+            </button>
+          </div>
+          <span />
+        </div>
+        <div class="theme-row">
+          <span>色</span>
+          <div class="color-pair">
+            <label>
+              <input type="color" value={theme.color1} onInput={(e) => previewTheme({ color1: (e.target as HTMLInputElement).value })} onChange={(e) => saveTheme({ color1: (e.target as HTMLInputElement).value })} />
+              {theme.mode === 'gradient' ? '始点' : '色'}
+            </label>
+            {theme.mode === 'gradient' && (
+              <label>
+                <input type="color" value={theme.color2} onInput={(e) => previewTheme({ color2: (e.target as HTMLInputElement).value })} onChange={(e) => saveTheme({ color2: (e.target as HTMLInputElement).value })} />
+                終点
+              </label>
+            )}
+          </div>
+          <span />
+        </div>
+        {theme.mode === 'gradient' && (
+          <div class="theme-row">
+            <span>角度</span>
+            <input type="range" min={0} max={360} step={5} value={theme.angle} onInput={(e) => previewTheme({ angle: Number((e.target as HTMLInputElement).value) })} onChange={(e) => saveTheme({ angle: Number((e.target as HTMLInputElement).value) })} />
+            <span class="val">{theme.angle}°</span>
+          </div>
+        )}
+        <div class="theme-row">
+          <span>色の強さ</span>
+          <input type="range" min={0} max={100} step={1} value={theme.intensity} onInput={(e) => previewTheme({ intensity: Number((e.target as HTMLInputElement).value) })} onChange={(e) => saveTheme({ intensity: Number((e.target as HTMLInputElement).value) })} />
+          <span class="val">{theme.intensity}</span>
+        </div>
+        <div class="theme-row">
+          <span>グレイン</span>
+          <input type="range" min={0} max={100} step={1} value={theme.grain} onInput={(e) => previewTheme({ grain: Number((e.target as HTMLInputElement).value) })} onChange={(e) => saveTheme({ grain: Number((e.target as HTMLInputElement).value) })} />
+          <span class="val">{theme.grain}</span>
+        </div>
+        <div class="inline" style="margin-top:4px">
+          <button onClick={() => saveTheme(DEFAULT_THEME)}>既定に戻す</button>
+          <span class="hint" style="font-size:12px;color:var(--fg-muted)">この画面の背景にもその場で反映される</span>
         </div>
       </div>
 

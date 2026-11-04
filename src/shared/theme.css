@@ -1,0 +1,47 @@
+/*
+ * 背景テーマ。--theme-* は shared/theme.ts が設定から流し込む。
+ * ベース色 (--bg-base) に 2 色を --theme-pct だけ混ぜてグラデーションにし、
+ * その上に SVG ノイズ (feTurbulence) をグレインとして重ねる。
+ */
+:root {
+  --theme-c1: #6366f1;
+  --theme-c2: #ec4899;
+  --theme-angle: 160deg;
+  --theme-pct: 12%;
+  --grain-opacity: 0.18;
+  --bg-c1: color-mix(in srgb, var(--theme-c1) var(--theme-pct), var(--bg-base));
+  --bg-c2: color-mix(in srgb, var(--theme-c2) var(--theme-pct), var(--bg-base));
+  --bg: var(--bg-c1);
+}
+
+body {
+  background: linear-gradient(var(--theme-angle), var(--bg-c1), var(--bg-c2)) fixed;
+}
+:root[data-theme-mode="solid"] body {
+  background: var(--bg-c1);
+}
+
+/*
+ * グレイン。fractalNoise は輝度が中間に寄るので、soft-light だとほぼ消える。
+ * 輝度をアルファに写して「透明地に黒い粒」(ダークでは白い粒) にし、通常合成で重ねる。
+ * ポインタは素通しして、内容の下に敷く。
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.5 0.5 0.5 0 -0.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+@media (prefers-color-scheme: dark) {
+  body::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.5 0.5 0.5 0 -0.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+body > * {
+  position: relative;
+  z-index: 1;
+}

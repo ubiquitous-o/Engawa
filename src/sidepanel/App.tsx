@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { getCollapsedSections, setCollapsedSections } from '@shared/storage';
+import { applyTheme } from '@shared/theme';
 import { installKeyboard } from './lib/keyboard';
 import { useBookmarkChildren, useBookmarkTree, useCurrentWindowId, useFavoritesFolder, useSettings } from './lib/hooks';
 import { buildFavoriteIndex } from './lib/open';
@@ -25,10 +26,7 @@ export function App() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    document.documentElement.style.setProperty('--accent', settings.accentColor);
-    document.documentElement.dataset.density = settings.density;
-  }, [settings.accentColor, settings.density]);
+  useEffect(() => applyTheme(settings), [settings]);
 
 
   useEffect(() => {

@@ -14,7 +14,51 @@ export interface Settings {
   accentColor: string;
   /** 表示密度。compact は行とタイルを詰めて、狭い幅でも多く見せる */
   density: 'comfortable' | 'compact';
+  /** 背景のテーマ */
+  theme: Theme;
+  /** ユーザーが保存した背景プリセット */
+  customThemes: CustomTheme[];
 }
+
+/** 保存したプリセット。色だけでなく角度・強さ・グレインも丸ごと持つ。 */
+export interface CustomTheme {
+  id: string;
+  name: string;
+  theme: Theme;
+}
+
+/** 背景の見た目。Arc のテーマと同じく、2 色のグラデーションにグレインを乗せる。 */
+export interface Theme {
+  mode: 'solid' | 'gradient';
+  /** グラデーションの始点色（solid ならこれだけ使う） */
+  color1: string;
+  color2: string;
+  /** グラデーションの角度（deg） */
+  angle: number;
+  /** 色の強さ 0〜100。ベース色にどれだけ混ぜるか */
+  intensity: number;
+  /** グレイン（ノイズ）の濃さ 0〜100 */
+  grain: number;
+}
+
+export const DEFAULT_THEME: Theme = {
+  mode: 'gradient',
+  color1: '#6366f1',
+  color2: '#ec4899',
+  angle: 160,
+  intensity: 12,
+  grain: 30,
+};
+
+export const THEME_PRESETS: { name: string; color1: string; color2: string }[] = [
+  { name: 'Dusk', color1: '#6366f1', color2: '#ec4899' },
+  { name: 'Engawa', color1: '#4f8f45', color2: '#9a6a3a' },
+  { name: 'Ocean', color1: '#0ea5e9', color2: '#14b8a6' },
+  { name: 'Sunset', color1: '#f97316', color2: '#f43f5e' },
+  { name: 'Lavender', color1: '#8b5cf6', color2: '#0ea5e9' },
+  { name: 'Moss', color1: '#10b981', color2: '#f59e0b' },
+  { name: 'Slate', color1: '#64748b', color2: '#334155' },
+];
 
 export const DEFAULT_SETTINGS: Settings = {
   githubApiBase: 'https://api.github.com',
@@ -24,6 +68,8 @@ export const DEFAULT_SETTINGS: Settings = {
   showTabs: true,
   accentColor: '#6366f1',
   density: 'comfortable',
+  theme: DEFAULT_THEME,
+  customThemes: [],
 };
 
 export const ACCENT_PRESETS: { name: string; value: string }[] = [

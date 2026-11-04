@@ -64,6 +64,19 @@ Tabs that belong to a favorite do not appear in the "Tabs" list, just like pinne
 
 The tab list overlaps with Chrome's native vertical tabs, so it can be turned off in the options.
 
+## Appearance
+
+The "Background" card in the options page builds an Arc-style background.
+
+- **Presets**: Dusk / Engawa (green × brown) / Ocean / Sunset / Lavender / Moss / Slate. The **+** at the end saves the current look (colors, angle, intensity, grain) under a name; hover a saved preset and hit × to delete it
+- **Type**: two-color gradient or a single color
+- **Colors**: start and end via color pickers; **angle** from 0 to 360°
+- **Intensity**: how much color is mixed into the white (or, in dark mode, black) base
+- **Grain**: Arc-like texture, drawn with an SVG noise filter, so no image assets are shipped
+- The options page itself uses the same background, so you can tune it live
+
+The accent color (selection rings, badges) is chosen separately. Light/dark follows the OS.
+
 ## Chrome limitations
 
 - **The tab strip and the address bar cannot be hidden by an extension.** Chrome's native vertical tabs feature removes the horizontal tab strip, nothing more
