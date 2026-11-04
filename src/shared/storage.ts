@@ -17,6 +17,7 @@ const KEY_FAV_MAP = 'favTabMap';
 const KEY_NOTIF = 'notificationUrls';
 const KEY_FAV_FOLDER = 'favoritesFolderId'; // 旧形式（単一）
 const KEY_FAV_FOLDERS = 'favoritesFolderIds';
+const KEY_BOOKMARK_ROOT = 'bookmarkRootId';
 
 // ---- 設定（sync） ----
 
@@ -176,4 +177,26 @@ export async function getNotificationUrls(): Promise<Record<string, string>> {
 
 export async function setNotificationUrls(map: Record<string, string>): Promise<void> {
   await chrome.storage.session.set({ [KEY_NOTIF]: map });
+}
+
+// ---- ブックマークセクションのルート（local、端末ごと） ----
+
+/** ブックマークセクションに中身を並べるフォルダの ID。未設定（null）ならツリー全体。 */
+export async function getBookmarkRootId(): Promise<string | null> {
+  const r = await chrome.storage.local.get(KEY_BOOKMARK_ROOT);
+  const id = r[KEY_BOOKMARK_ROOT];
+  return typeof id === 'string' && id ? id : null;
+}
+
+export async function setBookmarkRootId(id: string | null): Promise<void> {
+  if (id) await chrome.storage.local.set({ [KEY_BOOKMARK_ROOT]: id });
+  else await chrome.storage.local.remove(KEY_BOOKMARK_ROOT);
+}
+
+export function onBookmarkRootChanged(cb: () => void): () => void {
+  const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+    if (area === 'local' && changes[KEY_BOOKMARK_ROOT]) cb();
+  };
+  chrome.storage.onChanged.addListener(listener);
+  return () => chrome.storage.onChanged.removeListener(listener);
 }

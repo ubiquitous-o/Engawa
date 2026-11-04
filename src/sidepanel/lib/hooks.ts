@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { getFavoritesFolderIds } from '@shared/bookmarks';
-import { getSettings, onFavoritesFolderChanged, onSettingsChanged } from '@shared/storage';
+import { getBookmarkRootId, getSettings, onBookmarkRootChanged, onFavoritesFolderChanged, onSettingsChanged } from '@shared/storage';
 import { DEFAULT_SETTINGS, type DragPayload, type Settings } from '@shared/types';
 import { currentDrag, subscribeDrag } from './dnd';
 
@@ -58,6 +58,17 @@ export function useFavoritesFolders(): chrome.bookmarks.BookmarkTreeNode[] | nul
   }, [load]);
   useChromeEvents([chrome.bookmarks.onRemoved, chrome.bookmarks.onChanged, chrome.bookmarks.onMoved], load, 300);
   return nodes;
+}
+
+/** ブックマークセクションのルートフォルダ ID（未設定なら null）。設定変更に追従する。 */
+export function useBookmarkRootId(): string | null {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    const load = () => void getBookmarkRootId().then(setId);
+    load();
+    return onBookmarkRootChanged(load);
+  }, []);
+  return id;
 }
 
 export function useCurrentWindowId(): number | undefined {

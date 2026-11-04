@@ -4,7 +4,7 @@ import { applyTheme } from '@shared/theme';
 import { installPointerDrag } from './lib/dnd';
 import { installKeyboard } from './lib/keyboard';
 import { favoritesFolderTitle } from './lib/favMenu';
-import { useBookmarkChildrenOf, useBookmarkTree, useCurrentWindowId, useFavoritesFolders, useSettings } from './lib/hooks';
+import { useBookmarkChildrenOf, useBookmarkRootId, useBookmarkTree, useCurrentWindowId, useFavoritesFolders, useSettings, type BookmarkNode } from './lib/hooks';
 import { buildFavoriteIndex } from './lib/open';
 import { BookmarkTree } from './components/BookmarkTree';
 import { ContextMenuHost } from './components/ContextMenu';
@@ -17,6 +17,15 @@ import { SearchResults } from './components/SearchResults';
 import { Section } from './components/Section';
 import { TabsSection } from './components/TabsSection';
 
+function findFolder(node: BookmarkNode, id: string): BookmarkNode | null {
+  if (node.id === id) return node.url ? null : node;
+  for (const c of node.children ?? []) {
+    const hit = findFolder(c, id);
+    if (hit) return hit;
+  }
+  return null;
+}
+
 export function App() {
   const settings = useSettings();
   const favFolders = useFavoritesFolders();
@@ -25,6 +34,9 @@ export function App() {
   const favIndex = useMemo(() => buildFavoriteIndex(favItems), [favItems]);
   const windowId = useCurrentWindowId();
   const { root } = useBookmarkTree();
+  const bookmarkRootId = useBookmarkRootId();
+  // ブックマークセクションに並べるフォルダ。設定したフォルダが消えていたらツリー全体に戻る
+  const treeRoot = useMemo(() => (root && bookmarkRootId ? findFolder(root, bookmarkRootId) ?? root : root), [root, bookmarkRootId]);
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLInputElement>(null);
@@ -87,7 +99,7 @@ export function App() {
               <PRSection windowId={windowId} collapsed={collapsed.has('pr')} onToggle={() => toggleSection('pr')} />
             )}
             <Section title="ブックマーク" collapsed={collapsed.has('bookmarks')} onToggle={() => toggleSection('bookmarks')}>
-              <BookmarkTree root={root} favoritesFolders={favFolders} favIndex={favIndex} windowId={windowId} />
+              <BookmarkTree root={root} treeRoot={treeRoot ?? root} favoritesFolders={favFolders} favIndex={favIndex} windowId={windowId} />
             </Section>
             {settings.showTabs && (
               <TabsSection favoritesFolders={favFolders} windowId={windowId} collapsed={collapsed.has('tabs')} onToggle={() => toggleSection('tabs')} />

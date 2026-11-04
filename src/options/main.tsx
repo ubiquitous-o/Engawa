@@ -2,10 +2,12 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { send } from '@shared/messages';
 import {
+  getBookmarkRootId,
   getPRSyncState,
   getSettings,
   getToken,
   onPRSyncStateChanged,
+  setBookmarkRootId,
   setToken,
   updateSettings,
 } from '@shared/storage';
@@ -33,6 +35,25 @@ function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange
       <button class="switch" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} aria-label={label} />
     </div>
   );
+}
+
+interface FolderOption {
+  id: string;
+  label: string;
+}
+
+/** ブックマークツリーのフォルダを、階層をインデントにして一列に並べる */
+function flattenFolders(root: chrome.bookmarks.BookmarkTreeNode): FolderOption[] {
+  const out: FolderOption[] = [];
+  const walk = (n: chrome.bookmarks.BookmarkTreeNode, depth: number) => {
+    for (const c of n.children ?? []) {
+      if (c.url) continue;
+      out.push({ id: c.id, label: `${'　'.repeat(depth)}${c.title || '(無題)'}` });
+      walk(c, depth + 1);
+    }
+  };
+  walk(root, 0);
+  return out;
 }
 
 function statusText(s: PRSyncState): string {
@@ -63,6 +84,8 @@ function Options() {
   const [test, setTest] = useState<{ cls: string; text: string } | null>(null);
   const [sync, setSync] = useState<PRSyncState>(INITIAL_PR_SYNC_STATE);
   const [saved, setSaved] = useState(0);
+  const [folders, setFolders] = useState<FolderOption[]>([]);
+  const [bookmarkRoot, setBookmarkRoot] = useState<string>('');
 
   useEffect(() => {
     void getSettings().then((s) => {
@@ -72,6 +95,8 @@ function Options() {
     });
     void getToken().then((t) => setHasToken(!!t));
     void getPRSyncState().then(setSync);
+    void chrome.bookmarks.getTree().then(([root]) => setFolders(root ? flattenFolders(root) : []));
+    void getBookmarkRootId().then((id) => setBookmarkRoot(id ?? ''));
     return onPRSyncStateChanged(setSync);
   }, []);
 
@@ -79,6 +104,12 @@ function Options() {
   useEffect(() => applyTheme(settings), [settings]);
 
   const flash = () => setSaved(Date.now());
+
+  const saveBookmarkRoot = async (id: string) => {
+    setBookmarkRoot(id);
+    await setBookmarkRootId(id || null);
+    flash();
+  };
 
   const patch = async (p: Partial<Settings>) => {
     const next = await updateSettings(p);
@@ -243,6 +274,20 @@ function Options() {
           checked={settings.notifyReviewRequests}
           onChange={(v) => void patch({ notifyReviewRequests: v })}
         />
+        <div class="fav-size">
+          <div>
+            <div class="label">ブックマークに表示するフォルダ</div>
+            <div class="hint">このフォルダの中身をブックマークセクションのトップに並べる。「すべて」ならブックマークバーなどのルートから</div>
+          </div>
+          <select class="folder-select" value={bookmarkRoot} onChange={(e) => void saveBookmarkRoot((e.target as HTMLSelectElement).value)} aria-label="ブックマークに表示するフォルダ">
+            <option value="">すべて</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div class="fav-size">
           <div>
             <div class="label">お気に入りのアイコンサイズ</div>

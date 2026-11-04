@@ -11,7 +11,10 @@ import { Favicon } from './Favicon';
 import { Chevron, Star } from './Icons';
 
 interface Props {
+  /** ツリー全体のルート（ブックマークバーの特定や祖先判定に使う） */
   root: BookmarkNode;
+  /** このフォルダの中身をセクションのトップに並べる。未設定なら root と同じ */
+  treeRoot: BookmarkNode;
   /** お気に入りとして表示中のフォルダ（表示順） */
   favoritesFolders: BookmarkNode[];
   favIndex: FavoriteIndex;
@@ -65,7 +68,7 @@ function RenameInput({ initial, onCommit, onCancel }: { initial: string; onCommi
   );
 }
 
-export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Props) {
+export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windowId }: Props) {
   const favoritesFolderIds = favoritesFolders.map((f) => f.id);
   const map = useMemo(() => indexTree(root), [root]);
   const [expanded, setExpanded] = useState<Set<string> | null>(null);
@@ -74,6 +77,8 @@ export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Pro
   const [dragging, setDragging] = useState<string | null>(null);
   const [zoneOver, setZoneOver] = useState(false);
   const bar = root.children?.find((n) => (n as { folderType?: string }).folderType === 'bookmarks-bar' || n.id === '1');
+  // 空きスペースへのドロップ先。ルートを絞っているならそのフォルダ、そうでなければブックマークバー
+  const dropRoot = treeRoot.id !== root.id ? treeRoot : bar;
 
   useEffect(() => {
     void getExpandedFolders().then((ids) => {
@@ -294,11 +299,13 @@ export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Pro
     setDragging(null);
     setDrop(null);
     const payload = currentDrag();
-    if (!payload || !bar) return;
+    if (!payload || !dropRoot) return;
     if (payload.kind === 'tab') {
-      await chrome.bookmarks.create({ parentId: bar.id, title: payload.title, url: payload.url });
-    } else if (payload.parentId !== bar.id) {
-      await chrome.bookmarks.move(payload.id, { parentId: bar.id });
+      await chrome.bookmarks.create({ parentId: dropRoot.id, title: payload.title, url: payload.url });
+    } else {
+      // 自分自身や自分の子孫フォルダの中へは動かせない
+      const intoSelf = payload.id === dropRoot.id || isDescendant(map, dropRoot.id, payload.id);
+      if (payload.parentId !== dropRoot.id && !intoSelf) await chrome.bookmarks.move(payload.id, { parentId: dropRoot.id });
     }
   };
   const isZone = (e: DragEvent) => {
@@ -322,7 +329,7 @@ export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Pro
         if (isZone(e)) void dropToBar(e);
       }}
     >
-      {(root.children ?? []).map((n) => renderNode(n, 0))}
+      {(treeRoot.children ?? []).map((n) => renderNode(n, 0))}
     </div>
   );
 }
