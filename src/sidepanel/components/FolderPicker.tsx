@@ -6,14 +6,10 @@ import { Chevron, Folder } from './Icons';
 interface Props {
   root: BookmarkNode;
   current: BookmarkNode;
-  sidebarFolderId: string;
 }
 
-/**
- * お気に入りとして表示するフォルダを選ぶ。ブックマークバー直下と、その配下のフォルダから選べる。
- * 拡張の管理フォルダ (Engawa) は候補に出さない。
- */
-export function FolderPicker({ root, current, sidebarFolderId }: Props) {
+/** お気に入りとして表示するフォルダを選ぶ。ブックマークバー直下と、その配下のフォルダから選べる。 */
+export function FolderPicker({ root, current }: Props) {
   const bar = root.children?.find((n) => (n as { folderType?: string }).folderType === 'bookmarks-bar' || n.id === '1');
   const isBar = current.id === bar?.id;
 
@@ -22,7 +18,7 @@ export function FolderPicker({ root, current, sidebarFolderId }: Props) {
     const items: MenuItem[] = [];
     const walk = (n: BookmarkNode, depth: number) => {
       for (const c of n.children ?? []) {
-        if (c.url || c.id === sidebarFolderId) continue;
+        if (c.url) continue;
         const selected = c.id === current.id;
         items.push({
           label: `${'　'.repeat(depth)}${selected ? '✓ ' : ''}${c.title || '(無題)'}`,
@@ -37,7 +33,7 @@ export function FolderPicker({ root, current, sidebarFolderId }: Props) {
       disabled: isBar,
       onSelect: () => setFavoritesFolderId(null),
     });
-    if ((bar.children ?? []).some((c) => !c.url && c.id !== sidebarFolderId)) items.push({ separator: true });
+    if ((bar.children ?? []).some((c) => !c.url)) items.push({ separator: true });
     walk(bar, 0);
     openContextMenu(e, items);
   };

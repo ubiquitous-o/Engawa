@@ -1,5 +1,4 @@
-import { getFavoritesFolderIdRaw, getManagedFolders, setManagedFolders } from './storage';
-import { FOLDER_NAMES, type ManagedFolders } from './types';
+import { getFavoritesFolderIdRaw } from './storage';
 
 type Node = chrome.bookmarks.BookmarkTreeNode;
 
@@ -22,53 +21,6 @@ async function exists(id: string | undefined): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-async function findOrCreateFolder(parentId: string, title: string): Promise<Node> {
-  const children = await chrome.bookmarks.getChildren(parentId);
-  const found = children.find((c) => !c.url && c.title === title);
-  if (found) return found;
-  return chrome.bookmarks.create({ parentId, title });
-}
-
-let ensuring: Promise<ManagedFolders> | null = null;
-
-/**
- * Engawa/PR/{レビュー依頼,自分のPR} を保証し、ID を保存して返す。
- * バックグラウンドからだけ呼ぶ（同時実行で重複フォルダを作らないため）。
- */
-export function ensureManagedFolders(): Promise<ManagedFolders> {
-  if (ensuring) return ensuring;
-  ensuring = (async () => {
-    try {
-      const stored = await getManagedFolders();
-      if (
-        stored &&
-        (await exists(stored.sidebar)) &&
-        (await exists(stored.pr)) &&
-        (await exists(stored.prReview)) &&
-        (await exists(stored.prMine))
-      ) {
-        return stored;
-      }
-      const bar = await getBookmarksBar();
-      const sidebar = await findOrCreateFolder(bar.id, FOLDER_NAMES.sidebar);
-      const pr = await findOrCreateFolder(sidebar.id, FOLDER_NAMES.pr);
-      const prReview = await findOrCreateFolder(pr.id, FOLDER_NAMES.prReview);
-      const prMine = await findOrCreateFolder(pr.id, FOLDER_NAMES.prMine);
-      const folders: ManagedFolders = {
-        sidebar: sidebar.id,
-        pr: pr.id,
-        prReview: prReview.id,
-        prMine: prMine.id,
-      };
-      await setManagedFolders(folders);
-      return folders;
-    } finally {
-      ensuring = null;
-    }
-  })();
-  return ensuring;
 }
 
 /**

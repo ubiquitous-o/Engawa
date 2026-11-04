@@ -5,9 +5,13 @@
 [English](README.en.md)
 
 家の横に張り出した板の間、縁側。Chrome のサイドパネルに「お気に入り・ブックマーク・GitHub PR・開いているタブ」を縦に並べる、自分用の Manifest V3 拡張。
-永続データはすべて Chrome のブックマークに置く（pin タブは使わない）。お気に入りもブックマークバーのフォルダそのもの。拡張を消しても、別ブラウザに移っても、データはそのまま残る。
+お気に入りはブックマークバーのフォルダそのものを表示するだけで、拡張はブックマークに何も書かない（pin タブも使わない）。拡張を消しても、別ブラウザに移っても、ブックマークはそのまま残る。拡張が独自に持つのは設定・GitHub トークン・PR 一覧・タブ対応表だけ。
 
-## ビルドと読み込み
+## インストール
+
+[Releases](https://github.com/ubiquitous-o/Engawa/releases) から `engawa-vX.Y.Z.zip` を落として展開し、下の手順 1〜2 で展開したフォルダを読み込む。
+
+## ソースからビルドして読み込む
 
 ```bash
 npm install
@@ -18,10 +22,11 @@ npm run build
 2. **パッケージ化されていない拡張機能を読み込む** → このリポジトリの `dist/` を選ぶ
 3. ツールバーのアイコンをクリック、または **Alt+S** でサイドパネルが開く
 
-初回起動時にブックマークバー直下へ `Engawa/PR/{レビュー依頼, 自分のPR}` を自動で作る（PR 同期用）。
 お気に入りは専用フォルダを持たず、ブックマークバー配下の好きなフォルダを「お気に入りとして表示」する。未設定ならブックマークバー直下。
 
 開発中は `npm run dev`（`vite build --watch`）で `dist/` を更新し続け、`chrome://extensions` の更新ボタンで再読み込みする。
+
+リリースは `package.json` の `version` を上げて `v` 付きのタグを push すると、GitHub Actions が zip を作って Releases に添付する。手元で zip を作るだけなら `npm run package`（`release/` に出る）。
 
 ## GitHub 連携
 
@@ -29,10 +34,10 @@ npm run build
    - **Classic トークン**（推奨）: [作成ページ](https://github.com/settings/tokens/new) でスコープ **`repo`** にチェック。自分のリポジトリも所属 org のリポジトリも、後から招待されたものも全部対象になる。SSO を使う org は、作成後に「Configure SSO」でその org を認可する
    - Fine-grained トークンでもよいが、「All repositories」にしても所有者 1 つ分しかカバーできない。org をまたぐなら classic にする
 2. 拡張の設定画面（サイドパネル右上の歯車）でトークンを入力して保存。「接続テスト」でログイン名が返れば OK
-3. 5 分ごと（設定で変更可）に `Engawa/PR/レビュー依頼` と `Engawa/PR/自分のPR` が自動で同期される
+3. 5 分ごと（設定で変更可）に「レビュー依頼」と「自分のPR」がサイドパネルに同期される
 
 - トークンは `chrome.storage.local` にだけ保存する。`storage.sync` には入れず、ログにも出さない
-- 拡張が書き換えるのは `Engawa/PR` 配下の 2 フォルダ直下の URL ブックマークだけ。それ以外のブックマークには触らない
+- PR 一覧は `chrome.storage.local` に置く。ブックマークには書かないので、端末ごとにトークンが要る
 - 401 → バッジが `!` になり、設定画面へ誘導。403/429 → 次回まで間隔を倍にして再試行
 - GitHub Enterprise は設定画面の API ベース URL を `https://ghe.example.com/api/v3` に変える（そのホストへのアクセス許可を求められる）
 

@@ -1,0 +1,50 @@
+# v* タグを push すると dist/ を zip にして GitHub Releases に添付する
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: タグと package.json の version が一致するか確認
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "tag v$tag と package.json の $pkg が違う" >&2
+            exit 1
+          fi
+
+      - run: npm run typecheck
+      - run: npm run build
+
+      - name: zip を作る
+        run: |
+          cd dist
+          zip -r "../engawa-${GITHUB_REF_NAME}.zip" .
+
+      # サードパーティの action は使わず、GitHub 純正の gh CLI で Release を作る
+      - name: Release を作って zip を添付
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$(printf '1. `engawa-%s.zip` を落として展開\n2. `chrome://extensions` → デベロッパーモード → 「パッケージ化されていない拡張機能を読み込む」で展開したフォルダを選ぶ\n' "$GITHUB_REF_NAME")"
+          gh release create "$GITHUB_REF_NAME" "engawa-${GITHUB_REF_NAME}.zip" \
+            --title "Engawa $GITHUB_REF_NAME" \
+            --notes "$notes" \
+            --generate-notes

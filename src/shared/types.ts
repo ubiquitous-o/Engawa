@@ -39,20 +39,20 @@ export const ACCENT_PRESETS: { name: string; value: string }[] = [
   { name: 'Slate', value: '#64748b' },
 ];
 
-/** 拡張が管理するブックマークフォルダの ID（chrome.storage.local、端末ごと）。PR 同期用。 */
-export interface ManagedFolders {
-  sidebar: string;
-  pr: string;
-  prReview: string;
-  prMine: string;
+/** GitHub から取った PR 1 件。ブックマークには書かず storage.local に置く。 */
+export interface PRItem {
+  url: string;
+  title: string;
+  repo: string;
+  number: number;
 }
 
-export const FOLDER_NAMES = {
-  sidebar: 'Engawa',
-  pr: 'PR',
-  prReview: 'レビュー依頼',
-  prMine: '自分のPR',
-} as const;
+export interface PRLists {
+  review: PRItem[];
+  mine: PRItem[];
+}
+
+export const EMPTY_PR_LISTS: PRLists = { review: [], mine: [] };
 
 export type PRSyncStatus =
   | 'idle'

@@ -1,7 +1,6 @@
 import type { JSX } from 'preact';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { getExpandedFolders, setExpandedFolders, setFavoritesFolderId } from '@shared/storage';
-import type { ManagedFolders } from '@shared/types';
 import { hostOf } from '@shared/url';
 import { currentDrag, dropPositionFor, endDrag, startDrag, type DropPosition } from '../lib/dnd';
 import { openContextMenu, type MenuItem } from '../lib/contextMenu';
@@ -12,7 +11,6 @@ import { Chevron, Star } from './Icons';
 
 interface Props {
   root: BookmarkNode;
-  folders: ManagedFolders;
   /** お気に入りとして表示中のフォルダ */
   favoritesFolderId: string;
   favIndex: FavoriteIndex;
@@ -66,7 +64,7 @@ function RenameInput({ initial, onCommit, onCancel }: { initial: string; onCommi
   );
 }
 
-export function BookmarkTree({ root, folders, favoritesFolderId, favIndex, windowId }: Props) {
+export function BookmarkTree({ root, favoritesFolderId, favIndex, windowId }: Props) {
   const map = useMemo(() => indexTree(root), [root]);
   const [expanded, setExpanded] = useState<Set<string> | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -154,7 +152,7 @@ export function BookmarkTree({ root, folders, favoritesFolderId, favIndex, windo
       items.push(
         {
           label: node.id === favoritesFolderId ? 'お気に入りとして表示中' : 'お気に入りとして表示',
-          disabled: node.id === favoritesFolderId || !underBar || node.id === folders.sidebar || isDescendant(map, node.id, folders.sidebar),
+          disabled: node.id === favoritesFolderId || !underBar,
           onSelect: () => setFavoritesFolderId(node.id === bar?.id ? null : node.id),
         },
         { separator: true },
@@ -189,7 +187,6 @@ export function BookmarkTree({ root, folders, favoritesFolderId, favIndex, windo
   };
 
   const renderNode = (node: BookmarkNode, depth: number): JSX.Element | null => {
-    if (node.id === folders.sidebar) return null; // 管理フォルダはお気に入り/PR セクションで表示
     const isFolder = !node.url;
     const isOpen = isFolder && (expanded?.has(node.id) ?? false);
     const isRoot = !node.parentId || node.parentId === '0';

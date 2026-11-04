@@ -5,9 +5,13 @@
 [日本語](README.md)
 
 An *engawa* is the wooden veranda that runs along the side of a Japanese house. Engawa is a personal Manifest V3 extension that lines up favorites, bookmarks, GitHub pull requests and open tabs in Chrome's side panel.
-All persistent data lives in Chrome's own bookmarks (no pinned tabs). Favorites are just a folder on the bookmarks bar. Remove the extension or move to another browser and nothing is lost.
+Favorites simply display a folder on the bookmarks bar; the extension never writes to your bookmarks (and never uses pinned tabs). Remove the extension or move to another browser and your bookmarks are untouched. The only things the extension keeps for itself are settings, the GitHub token, the PR list and the favorite↔tab map.
 
-## Build and load
+## Install
+
+Grab `engawa-vX.Y.Z.zip` from [Releases](https://github.com/ubiquitous-o/Engawa/releases), unzip it, and load the folder with steps 1–2 below.
+
+## Build from source
 
 ```bash
 npm install
@@ -18,10 +22,11 @@ npm run build
 2. **Load unpacked** → pick this repository's `dist/` folder
 3. Click the toolbar icon or press **Alt+S** to open the side panel
 
-On first run the extension creates `Engawa/PR/{レビュー依頼, 自分のPR}` under the bookmarks bar (used for PR sync).
 Favorites have no dedicated folder: pick any folder under the bookmarks bar to "show as favorites". With nothing picked, the bookmarks bar itself is used.
 
 While developing, `npm run dev` (`vite build --watch`) keeps `dist/` up to date; press the reload button on `chrome://extensions` to pick up changes.
+
+To release, bump `version` in `package.json` and push a `v`-prefixed tag; GitHub Actions builds the zip and attaches it to the release. `npm run package` builds the same zip locally into `release/`.
 
 ## GitHub integration
 
@@ -29,10 +34,10 @@ While developing, `npm run dev` (`vite build --watch`) keeps `dist/` up to date;
    - **Classic token** (recommended): on the [new token page](https://github.com/settings/tokens/new) check the **`repo`** scope. It covers your own repositories, every org you belong to, and anything you are invited to later. For orgs with SSO, authorize the token via "Configure SSO" after creating it
    - A fine-grained token also works, but even with "All repositories" it covers a single owner. If your PRs span orgs, use classic
 2. Open the extension's options page (gear icon at the top right of the panel), paste the token and save. "Test connection" should return your login
-3. Every 5 minutes (configurable) `Engawa/PR/レビュー依頼` (review requested) and `Engawa/PR/自分のPR` (my PRs) are synced automatically
+3. Every 5 minutes (configurable) "review requested" and "my PRs" are synced into the side panel
 
 - The token is stored only in `chrome.storage.local`. It never goes into `storage.sync` and never appears in logs
-- The extension only touches URL bookmarks directly under the two folders inside `Engawa/PR`. Every other bookmark is left alone
+- The PR list lives in `chrome.storage.local`. Nothing is written to bookmarks, so each device needs its own token
 - 401 → the badge shows `!` and the panel points you to the options page. 403/429 → the interval doubles until the next successful sync
 - For GitHub Enterprise, change the API base URL in the options page to `https://ghe.example.com/api/v3` (you will be asked to grant access to that host)
 

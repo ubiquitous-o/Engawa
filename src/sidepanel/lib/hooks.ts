@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { send } from '@shared/messages';
 import { getFavoritesFolderId } from '@shared/bookmarks';
 import { getSettings, onFavoritesFolderChanged, onSettingsChanged } from '@shared/storage';
-import { DEFAULT_SETTINGS, type DragPayload, type ManagedFolders, type Settings } from '@shared/types';
+import { DEFAULT_SETTINGS, type DragPayload, type Settings } from '@shared/types';
 import { currentDrag, subscribeDrag } from './dnd';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,19 +41,6 @@ export function useSettings(): Settings {
     return onSettingsChanged(setSettings);
   }, []);
   return settings;
-}
-
-export function useManagedFolders(): ManagedFolders | null {
-  const [folders, setFolders] = useState<ManagedFolders | null>(null);
-  const load = useCallback(() => {
-    send({ type: 'folders:ensure' })
-      .then(setFolders)
-      .catch(() => {});
-  }, []);
-  useEffect(load, [load]);
-  // 管理フォルダが消されて作り直された場合に追従する
-  useChromeEvents([chrome.bookmarks.onRemoved, chrome.bookmarks.onCreated], load, 600);
-  return folders;
 }
 
 /** お気に入りとして表示するフォルダ。設定変更やフォルダ削除に追従する。 */

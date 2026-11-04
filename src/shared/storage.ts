@@ -1,14 +1,15 @@
 import {
   DEFAULT_SETTINGS,
+  EMPTY_PR_LISTS,
   INITIAL_PR_SYNC_STATE,
-  type ManagedFolders,
+  type PRLists,
   type PRSyncState,
   type Settings,
 } from './types';
 
 const KEY_SETTINGS = 'settings';
 const KEY_TOKEN = 'githubToken';
-const KEY_FOLDERS = 'managedFolders';
+const KEY_PR_LISTS = 'prLists';
 const KEY_PR_STATE = 'prSyncState';
 const KEY_EXPANDED = 'expandedFolders';
 const KEY_COLLAPSED = 'collapsedSections';
@@ -60,15 +61,25 @@ export function onTokenChanged(cb: () => void): () => void {
   return () => chrome.storage.onChanged.removeListener(listener);
 }
 
-// ---- 管理フォルダ ID（local） ----
+// ---- PR 一覧（local） ----
 
-export async function getManagedFolders(): Promise<ManagedFolders | null> {
-  const r = await chrome.storage.local.get(KEY_FOLDERS);
-  return (r[KEY_FOLDERS] as ManagedFolders | undefined) ?? null;
+export async function getPRLists(): Promise<PRLists> {
+  const r = await chrome.storage.local.get(KEY_PR_LISTS);
+  return { ...EMPTY_PR_LISTS, ...((r[KEY_PR_LISTS] as Partial<PRLists> | undefined) ?? {}) };
 }
 
-export async function setManagedFolders(f: ManagedFolders): Promise<void> {
-  await chrome.storage.local.set({ [KEY_FOLDERS]: f });
+export async function setPRLists(lists: PRLists): Promise<void> {
+  await chrome.storage.local.set({ [KEY_PR_LISTS]: lists });
+}
+
+export function onPRListsChanged(cb: (l: PRLists) => void): () => void {
+  const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+    if (area === 'local' && changes[KEY_PR_LISTS]) {
+      cb({ ...EMPTY_PR_LISTS, ...((changes[KEY_PR_LISTS].newValue as Partial<PRLists>) ?? {}) });
+    }
+  };
+  chrome.storage.onChanged.addListener(listener);
+  return () => chrome.storage.onChanged.removeListener(listener);
 }
 
 // ---- お気に入りとして表示するフォルダ（local、端末ごと。ブックマーク ID は端末で違う） ----

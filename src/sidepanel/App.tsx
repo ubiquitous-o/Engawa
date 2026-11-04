@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { getCollapsedSections, setCollapsedSections } from '@shared/storage';
 import { installKeyboard } from './lib/keyboard';
-import { useBookmarkChildren, useBookmarkTree, useCurrentWindowId, useFavoritesFolder, useManagedFolders, useSettings } from './lib/hooks';
+import { useBookmarkChildren, useBookmarkTree, useCurrentWindowId, useFavoritesFolder, useSettings } from './lib/hooks';
 import { buildFavoriteIndex } from './lib/open';
 import { BookmarkTree } from './components/BookmarkTree';
 import { ContextMenuHost } from './components/ContextMenu';
@@ -16,7 +16,6 @@ import { TabsSection } from './components/TabsSection';
 
 export function App() {
   const settings = useSettings();
-  const folders = useManagedFolders();
   const favFolder = useFavoritesFolder();
   const favItems = useBookmarkChildren(favFolder?.id);
   const favIndex = useMemo(() => buildFavoriteIndex(favItems), [favItems]);
@@ -57,7 +56,7 @@ export function App() {
     <div class="app">
       <SearchBox value={query} onChange={setQuery} inputRef={searchRef} />
       <main class="scroll">
-        {!folders || !root || !favFolder ? null : searching ? (
+        {!root || !favFolder ? null : searching ? (
           <SearchResults query={query} favoritesFolderId={favFolder.id} favIndex={favIndex} windowId={windowId} />
         ) : (
           <>
@@ -67,7 +66,7 @@ export function App() {
               onToggle={() => toggleSection('favorites')}
               actions={
                 <>
-                  <FolderPicker root={root} current={favFolder} sidebarFolderId={folders.sidebar} />
+                  <FolderPicker root={root} current={favFolder} />
                   <button class="icon-btn" title="設定" onClick={() => void chrome.runtime.openOptionsPage()}>
                     <Gear />
                   </button>
@@ -77,10 +76,10 @@ export function App() {
               <Favorites folderId={favFolder.id} windowId={windowId} />
             </Section>
             {settings.showPR && (
-              <PRSection folders={folders} windowId={windowId} collapsed={collapsed.has('pr')} onToggle={() => toggleSection('pr')} />
+              <PRSection windowId={windowId} collapsed={collapsed.has('pr')} onToggle={() => toggleSection('pr')} />
             )}
             <Section title="ブックマーク" collapsed={collapsed.has('bookmarks')} onToggle={() => toggleSection('bookmarks')}>
-              <BookmarkTree root={root} folders={folders} favoritesFolderId={favFolder.id} favIndex={favIndex} windowId={windowId} />
+              <BookmarkTree root={root} favoritesFolderId={favFolder.id} favIndex={favIndex} windowId={windowId} />
             </Section>
             {settings.showTabs && (
               <TabsSection favoritesFolderId={favFolder.id} windowId={windowId} collapsed={collapsed.has('tabs')} onToggle={() => toggleSection('tabs')} />

@@ -1,27 +1,23 @@
-import { ensureManagedFolders, getChildrenSafe } from '@shared/bookmarks';
 import {
   getNotificationUrls,
+  getPRLists,
   getPRSyncState,
   getSettings,
   getToken,
   setNotificationUrls,
+  setPRLists,
   updatePRSyncState,
 } from '@shared/storage';
-import type { PRSyncState } from '@shared/types';
+import type { PRItem, PRSyncState } from '@shared/types';
 import { normalizeUrl } from '@shared/url';
 
 export const ALARM_NAME = 'github-sync';
 const MAX_BACKOFF = 8;
 
 const QUERIES = {
-  prReview: 'is:pr is:open archived:false review-requested:@me',
-  prMine: 'is:pr is:open archived:false author:@me',
+  review: 'is:pr is:open archived:false review-requested:@me',
+  mine: 'is:pr is:open archived:false author:@me',
 } as const;
-
-interface PRItem {
-  url: string;
-  title: string;
-}
 
 interface SearchResponse {
   items?: Array<{ html_url: string; title: string; number: number; repository_url: string }>;
@@ -59,39 +55,18 @@ async function searchPRs(apiBase: string, token: string, query: string): Promise
     throw new GitHubError(res.status, `GitHub API エラー (HTTP ${res.status})`);
   }
   const body = (await res.json()) as SearchResponse;
-  return (body.items ?? []).map((it) => {
-    const repo = it.repository_url.split('/').pop() ?? '';
-    return { url: it.html_url, title: `[${repo}#${it.number}] ${it.title}` };
-  });
+  return (body.items ?? []).map((it) => ({
+    url: it.html_url,
+    title: it.title,
+    repo: it.repository_url.split('/').pop() ?? '',
+    number: it.number,
+  }));
 }
 
-/**
- * 管理フォルダの中身を PR 一覧と差分同期する。
- * このフォルダの直下の「URL を持つブックマーク」だけを触る。サブフォルダや他のブックマークには触れない。
- * @returns 新しく追加された PR
- */
-async function syncFolder(folderId: string, items: PRItem[]): Promise<PRItem[]> {
-  const children = (await getChildrenSafe(folderId)).filter((c) => !!c.url);
-  const byUrl = new Map(children.map((c) => [normalizeUrl(c.url), c] as const));
-  const wanted = new Map(items.map((it) => [normalizeUrl(it.url), it] as const));
-  const added: PRItem[] = [];
-
-  for (const [key, node] of byUrl) {
-    if (!wanted.has(key)) await chrome.bookmarks.remove(node.id);
-  }
-  let index = 0;
-  for (const [key, item] of wanted) {
-    const node = byUrl.get(key);
-    if (!node) {
-      await chrome.bookmarks.create({ parentId: folderId, title: item.title, url: item.url, index });
-      added.push(item);
-    } else {
-      if (node.title !== item.title) await chrome.bookmarks.update(node.id, { title: item.title });
-      if (node.index !== index) await chrome.bookmarks.move(node.id, { parentId: folderId, index });
-    }
-    index++;
-  }
-  return added;
+/** 前回の一覧に無かった PR */
+function newItems(prev: PRItem[], next: PRItem[]): PRItem[] {
+  const seen = new Set(prev.map((p) => normalizeUrl(p.url)));
+  return next.filter((p) => !seen.has(normalizeUrl(p.url)));
 }
 
 async function setBadge(text: string, color: string): Promise<void> {
@@ -115,7 +90,7 @@ async function notifyNewReviews(added: PRItem[]): Promise<void> {
       type: 'basic',
       iconUrl,
       title: `新しいレビュー依頼 ${added.length} 件`,
-      message: added.map((a) => a.title).slice(0, 5).join('\n'),
+      message: added.map((a) => `[${a.repo}#${a.number}] ${a.title}`).slice(0, 5).join('\n'),
     });
   } else {
     for (const item of added) {
@@ -125,7 +100,7 @@ async function notifyNewReviews(added: PRItem[]): Promise<void> {
         type: 'basic',
         iconUrl,
         title: '新しいレビュー依頼',
-        message: item.title,
+        message: `[${item.repo}#${item.number}] ${item.title}`,
       });
     }
   }
@@ -164,19 +139,18 @@ async function doSync(): Promise<PRSyncState> {
 
   await updatePRSyncState({ status: 'syncing', lastError: null });
   const apiBase = apiBaseFrom(settings.githubApiBase);
-  const folders = await ensureManagedFolders();
 
   try {
     const [review, mine] = await Promise.all([
-      searchPRs(apiBase, token, QUERIES.prReview),
-      searchPRs(apiBase, token, QUERIES.prMine),
+      searchPRs(apiBase, token, QUERIES.review),
+      searchPRs(apiBase, token, QUERIES.mine),
     ]);
-    const addedReview = await syncFolder(folders.prReview, review);
-    await syncFolder(folders.prMine, mine);
+    const before = await getPRLists();
+    await setPRLists({ review, mine });
 
-    // 初回同期（フォルダが空だった初回）は通知しない。以後は新規分だけ通知。
+    // 初回同期は通知しない。以後は前回に無かった分だけ通知。
     if (settings.notifyReviewRequests && prev.lastSyncAt !== null) {
-      await notifyNewReviews(addedReview);
+      await notifyNewReviews(newItems(before.review, review));
     }
     await setBadge(review.length > 0 ? String(review.length) : '', accent);
     const next = await updatePRSyncState({

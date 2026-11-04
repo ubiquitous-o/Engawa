@@ -1,8 +1,7 @@
-import type { FavoritesState, ManagedFolders, PRSyncState } from './types';
+import type { FavoritesState, PRSyncState } from './types';
 
 /** サイドパネル/設定画面 → バックグラウンド のメッセージ */
 export type Request =
-  | { type: 'folders:ensure' }
   | { type: 'fav:state' }
   | { type: 'fav:open'; bookmarkId: string; windowId?: number }
   | { type: 'fav:restore'; bookmarkId: string }
@@ -11,7 +10,6 @@ export type Request =
   | { type: 'github:test'; token?: string; apiBase?: string };
 
 export interface ResponseMap {
-  'folders:ensure': ManagedFolders;
   'fav:state': FavoritesState;
   'fav:open': { tabId: number };
   'fav:restore': { ok: boolean };
