@@ -1,4 +1,4 @@
-import { getFavoritesFolderIdRaw } from './storage';
+import { getFavoritesFolderIdsRaw } from './storage';
 
 type Node = chrome.bookmarks.BookmarkTreeNode;
 
@@ -24,13 +24,24 @@ async function exists(id: string | undefined): Promise<boolean> {
 }
 
 /**
- * お気に入りとして表示するフォルダの ID。
- * 設定されていない、または消えていたらブックマークバー自体を使う。
+ * お気に入りとして表示するフォルダの ID 一覧（表示順）。
+ * 設定されていない、またはすべて消えていたらブックマークバー自体だけを返す。
  */
-export async function getFavoritesFolderId(): Promise<string> {
-  const stored = await getFavoritesFolderIdRaw();
-  if (stored && (await exists(stored))) return stored;
-  return (await getBookmarksBar()).id;
+export async function getFavoritesFolderIds(): Promise<string[]> {
+  const stored = await getFavoritesFolderIdsRaw();
+  const alive: string[] = [];
+  for (const id of stored) if (!alive.includes(id) && (await exists(id))) alive.push(id);
+  if (alive.length > 0) return alive;
+  return [(await getBookmarksBar()).id];
+}
+
+/** すべてのお気に入りフォルダ直下にある URL 付きブックマーク。 */
+export async function getFavoriteBookmarks(): Promise<Node[]> {
+  const out: Node[] = [];
+  for (const id of await getFavoritesFolderIds()) {
+    for (const n of await getChildrenSafe(id)) if (n.url) out.push(n);
+  }
+  return out;
 }
 
 export async function getChildrenSafe(id: string): Promise<Node[]> {

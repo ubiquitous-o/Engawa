@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'preact/hooks';
 import { hostOf } from '@shared/url';
 import { openContextMenu } from '../lib/contextMenu';
-import { useChromeEvents, BOOKMARK_EVENTS } from '../lib/hooks';
-import { addToFavorites, openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
+import { useChromeEvents, BOOKMARK_EVENTS, type BookmarkNode } from '../lib/hooks';
+import { addToFavoritesItems } from '../lib/favMenu';
+import { openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
 import { Favicon } from './Favicon';
 
 interface Props {
   query: string;
-  favoritesFolderId: string;
+  favoritesFolders: BookmarkNode[];
   favIndex: FavoriteIndex;
   windowId: number | undefined;
 }
 
-export function SearchResults({ query, favoritesFolderId, favIndex, windowId }: Props) {
+export function SearchResults({ query, favoritesFolders, favIndex, windowId }: Props) {
   const [results, setResults] = useState<chrome.bookmarks.BookmarkTreeNode[]>([]);
   const run = () => {
     const q = query.trim();
@@ -48,7 +49,7 @@ export function SearchResults({ query, favoritesFolderId, favIndex, windowId }: 
               { label: '開く', onSelect: () => openBookmark(n.url!, favIndex, { windowId }) },
               { label: 'バックグラウンドで開く', onSelect: () => openUrl(n.url!, { background: true, windowId }) },
               { label: '現在のタブで開く', onSelect: () => openUrl(n.url!, { currentTab: true, windowId }) },
-              { label: 'お気に入りに追加', onSelect: () => addToFavorites(favoritesFolderId, { title: n.title, url: n.url! }) },
+              ...addToFavoritesItems(favoritesFolders, { title: n.title, url: n.url! }),
               { separator: true },
               { label: 'URL をコピー', onSelect: () => navigator.clipboard.writeText(n.url!) },
             ])

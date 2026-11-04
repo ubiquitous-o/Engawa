@@ -6,7 +6,6 @@ import { openContextMenu } from '../lib/contextMenu';
 import { useBookmarkChildren, useChromeEvents } from '../lib/hooks';
 import { addToFavorites } from '../lib/open';
 import { Favicon } from './Favicon';
-import { Plus } from './Icons';
 
 const TAB_EVENTS = [
   chrome.tabs.onActivated,
@@ -72,13 +71,6 @@ export function Favorites({ folderId, windowId }: Props) {
         await chrome.bookmarks.move(payload.id, { parentId: folderId, index });
       }
     }
-    refreshState();
-  };
-
-  const addCurrentTab = async () => {
-    const [tab] = await chrome.tabs.query({ windowId, active: true });
-    if (!tab?.url || !/^https?:/.test(tab.url)) return;
-    await addToFavorites(folderId, { title: tab.title ?? tab.url, url: tab.url });
     refreshState();
   };
 
@@ -174,9 +166,6 @@ export function Favorites({ folderId, windowId }: Props) {
           </div>
         );
       })}
-      <button class="fav-tile add" title="現在のタブをお気に入りに追加" onClick={addCurrentTab} data-nav>
-        <Plus />
-      </button>
       {items.length === 0 && <div class="fav-empty">タブやブックマークをここにドラッグ</div>}
     </div>
   );

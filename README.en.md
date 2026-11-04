@@ -5,7 +5,7 @@
 [日本語](README.md)
 
 An *engawa* is the wooden veranda that runs along the side of a Japanese house. Engawa is a personal Manifest V3 extension that lines up favorites, bookmarks, GitHub pull requests and open tabs in Chrome's side panel.
-Favorites simply display a folder on the bookmarks bar; the extension never writes to your bookmarks (and never uses pinned tabs). Remove the extension or move to another browser and your bookmarks are untouched. The only things the extension keeps for itself are settings, the GitHub token, the PR list and the favorite↔tab map.
+Favorites simply display one or more folders on the bookmarks bar; the extension never writes to your bookmarks (and never uses pinned tabs). Remove the extension or move to another browser and your bookmarks are untouched. The only things the extension keeps for itself are settings, the GitHub token, the PR list and the favorite↔tab map.
 
 ## Install
 
@@ -22,7 +22,7 @@ npm run build
 2. **Load unpacked** → pick this repository's `dist/` folder
 3. Click the toolbar icon or press **Alt+S** to open the side panel
 
-Favorites have no dedicated folder: pick any folder under the bookmarks bar to "show as favorites". With nothing picked, the bookmarks bar itself is used.
+Favorites have no dedicated folder: pick any folders under the bookmarks bar to "show as favorites". Each chosen folder gets its own section. With nothing picked, the bookmarks bar itself is used.
 
 While developing, `npm run dev` (`vite build --watch`) keeps `dist/` up to date; press the reload button on `chrome://extensions` to pick up changes.
 
@@ -45,11 +45,10 @@ To release, bump `version` in `package.json` and push a `v`-prefixed tag; GitHub
 
 | Action | Result |
 | --- | --- |
-| Folder button next to "Favorites" / right-click a folder in the tree → Show as favorites | Choose which folder is shown as favorites. The tree marks it with ★ |
+| Folder button next to "Favorites" / right-click a folder in the tree → Show as favorites | Choose which folders are shown as favorites (click to toggle, several allowed). The tree marks them with ★. Unselecting all falls back to the bookmarks bar |
 | Click a favorite tile | Switch to its tab if one exists, otherwise open a new one. Open items show a dot |
 | Right-click a favorite | Restore original URL / Close tab / Remove from favorites (moves to Other bookmarks) / Delete |
-| `+` tile | Add the current tab to favorites |
-| Drag a tab or bookmark onto favorites | Add to favorites or reorder |
+| Drag a tab or bookmark onto favorites | Add to that folder or reorder. With several folders, right-click "Add to favorites" lists one entry per folder |
 | Drag a tab onto the bookmark tree | Drop on a folder to add inside it, between rows to add next to them, or on the drop zone below to append to the bookmarks bar |
 | Drag a bookmark | Reorder or move into a folder |
 | Click a bookmark | Opens in a new tab. If the URL is a favorite, no new tab is added: it opens as that favorite's tab (the tile lights up). Middle-click / Cmd+click opens in the background. Right-click offers "Open in current tab" |

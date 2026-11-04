@@ -15,7 +15,8 @@ const KEY_EXPANDED = 'expandedFolders';
 const KEY_COLLAPSED = 'collapsedSections';
 const KEY_FAV_MAP = 'favTabMap';
 const KEY_NOTIF = 'notificationUrls';
-const KEY_FAV_FOLDER = 'favoritesFolderId';
+const KEY_FAV_FOLDER = 'favoritesFolderId'; // 旧形式（単一）
+const KEY_FAV_FOLDERS = 'favoritesFolderIds';
 
 // ---- 設定（sync） ----
 
@@ -92,19 +93,23 @@ export function onPRListsChanged(cb: (l: PRLists) => void): () => void {
 
 // ---- お気に入りとして表示するフォルダ（local、端末ごと。ブックマーク ID は端末で違う） ----
 
-export async function getFavoritesFolderIdRaw(): Promise<string | null> {
-  const r = await chrome.storage.local.get(KEY_FAV_FOLDER);
-  return (r[KEY_FAV_FOLDER] as string | undefined) ?? null;
+/** 保存されているフォルダ ID の配列。旧形式（単一 ID）があれば読み替える。空なら未設定。 */
+export async function getFavoritesFolderIdsRaw(): Promise<string[]> {
+  const r = await chrome.storage.local.get([KEY_FAV_FOLDERS, KEY_FAV_FOLDER]);
+  const ids = r[KEY_FAV_FOLDERS];
+  if (Array.isArray(ids)) return ids.filter((x): x is string => typeof x === 'string');
+  const legacy = r[KEY_FAV_FOLDER];
+  return typeof legacy === 'string' && legacy ? [legacy] : [];
 }
 
-export async function setFavoritesFolderId(id: string | null): Promise<void> {
-  if (id) await chrome.storage.local.set({ [KEY_FAV_FOLDER]: id });
-  else await chrome.storage.local.remove(KEY_FAV_FOLDER);
+export async function setFavoritesFolderIds(ids: string[]): Promise<void> {
+  await chrome.storage.local.set({ [KEY_FAV_FOLDERS]: ids });
+  await chrome.storage.local.remove(KEY_FAV_FOLDER);
 }
 
 export function onFavoritesFolderChanged(cb: () => void): () => void {
   const listener = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-    if (area === 'local' && changes[KEY_FAV_FOLDER]) cb();
+    if (area === 'local' && (changes[KEY_FAV_FOLDERS] || changes[KEY_FAV_FOLDER])) cb();
   };
   chrome.storage.onChanged.addListener(listener);
   return () => chrome.storage.onChanged.removeListener(listener);

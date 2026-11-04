@@ -1,18 +1,19 @@
 import type { JSX } from 'preact';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { getExpandedFolders, setExpandedFolders, setFavoritesFolderId } from '@shared/storage';
+import { getExpandedFolders, setExpandedFolders, setFavoritesFolderIds } from '@shared/storage';
 import { hostOf } from '@shared/url';
 import { currentDrag, dropPositionFor, endDrag, startDrag, type DropPosition } from '../lib/dnd';
 import { openContextMenu, type MenuItem } from '../lib/contextMenu';
 import { useDragPayload, type BookmarkNode } from '../lib/hooks';
-import { addToFavorites, openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
+import { addToFavoritesItems } from '../lib/favMenu';
+import { openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
 import { Favicon } from './Favicon';
 import { Chevron, Star } from './Icons';
 
 interface Props {
   root: BookmarkNode;
-  /** お気に入りとして表示中のフォルダ */
-  favoritesFolderId: string;
+  /** お気に入りとして表示中のフォルダ（表示順） */
+  favoritesFolders: BookmarkNode[];
   favIndex: FavoriteIndex;
   windowId: number | undefined;
 }
@@ -64,7 +65,8 @@ function RenameInput({ initial, onCommit, onCancel }: { initial: string; onCommi
   );
 }
 
-export function BookmarkTree({ root, favoritesFolderId, favIndex, windowId }: Props) {
+export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Props) {
+  const favoritesFolderIds = favoritesFolders.map((f) => f.id);
   const map = useMemo(() => indexTree(root), [root]);
   const [expanded, setExpanded] = useState<Set<string> | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -143,7 +145,7 @@ export function BookmarkTree({ root, favoritesFolderId, favIndex, windowId }: Pr
         { label: '開く', onSelect: () => openBookmark(node.url!, favIndex, { windowId }) },
         { label: 'バックグラウンドで開く', onSelect: () => openUrl(node.url!, { background: true, windowId }) },
         { label: '現在のタブで開く', onSelect: () => openUrl(node.url!, { currentTab: true, windowId }) },
-        { label: 'お気に入りに追加', onSelect: () => addToFavorites(favoritesFolderId, { title: node.title, url: node.url! }) },
+        ...addToFavoritesItems(favoritesFolders, { title: node.title, url: node.url! }),
         { separator: true },
         { label: 'URL をコピー', onSelect: () => navigator.clipboard.writeText(node.url!) },
       );
@@ -151,9 +153,12 @@ export function BookmarkTree({ root, favoritesFolderId, favIndex, windowId }: Pr
       const underBar = bar ? node.id === bar.id || isDescendant(map, node.id, bar.id) : false;
       items.push(
         {
-          label: node.id === favoritesFolderId ? 'お気に入りとして表示中' : 'お気に入りとして表示',
-          disabled: node.id === favoritesFolderId || !underBar,
-          onSelect: () => setFavoritesFolderId(node.id === bar?.id ? null : node.id),
+          label: favoritesFolderIds.includes(node.id) ? 'お気に入り表示から外す' : 'お気に入りとして表示',
+          disabled: !underBar,
+          onSelect: () =>
+            setFavoritesFolderIds(
+              favoritesFolderIds.includes(node.id) ? favoritesFolderIds.filter((id) => id !== node.id) : [...favoritesFolderIds, node.id],
+            ),
         },
         { separator: true },
         {
@@ -267,7 +272,7 @@ export function BookmarkTree({ root, favoritesFolderId, favIndex, windowId }: Pr
           ) : (
             <span class="title">{title}</span>
           )}
-          {isFolder && node.id === favoritesFolderId && <Star class="star" />}
+          {isFolder && favoritesFolderIds.includes(node.id) && <Star class="star" />}
           {isFolder && !isOpen && <span class="count">{node.children?.length ?? 0}</span>}
         </div>
         {isFolder && isOpen && node.children && (

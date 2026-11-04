@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { getFavoritesFolderId } from '@shared/bookmarks';
+import { getFavoritesFolderIds } from '@shared/bookmarks';
 import { getSettings, onFavoritesFolderChanged, onSettingsChanged } from '@shared/storage';
 import { DEFAULT_SETTINGS, type DragPayload, type Settings } from '@shared/types';
 import { currentDrag, subscribeDrag } from './dnd';
@@ -43,21 +43,21 @@ export function useSettings(): Settings {
   return settings;
 }
 
-/** お気に入りとして表示するフォルダ。設定変更やフォルダ削除に追従する。 */
-export function useFavoritesFolder(): chrome.bookmarks.BookmarkTreeNode | null {
-  const [node, setNode] = useState<chrome.bookmarks.BookmarkTreeNode | null>(null);
+/** お気に入りとして表示するフォルダ（表示順）。設定変更やフォルダ削除に追従する。読み込み前は null。 */
+export function useFavoritesFolders(): chrome.bookmarks.BookmarkTreeNode[] | null {
+  const [nodes, setNodes] = useState<chrome.bookmarks.BookmarkTreeNode[] | null>(null);
   const load = useCallback(() => {
-    void getFavoritesFolderId()
-      .then((id) => chrome.bookmarks.get(id))
-      .then(([n]) => setNode(n ?? null))
-      .catch(() => setNode(null));
+    void getFavoritesFolderIds()
+      .then((ids) => Promise.all(ids.map((id) => chrome.bookmarks.get(id).then(([n]) => n).catch(() => null))))
+      .then((ns) => setNodes(ns.filter((n): n is chrome.bookmarks.BookmarkTreeNode => !!n)))
+      .catch(() => setNodes([]));
   }, []);
   useEffect(() => {
     load();
     return onFavoritesFolderChanged(load);
   }, [load]);
   useChromeEvents([chrome.bookmarks.onRemoved, chrome.bookmarks.onChanged, chrome.bookmarks.onMoved], load, 300);
-  return node;
+  return nodes;
 }
 
 export function useCurrentWindowId(): number | undefined {
@@ -101,6 +101,20 @@ export function useBookmarkChildren(folderId: string | null | undefined): Bookma
       .then(setChildren)
       .catch(() => setChildren([]));
   }, [folderId]);
+  useEffect(reload, [reload]);
+  useChromeEvents(BOOKMARK_EVENTS, reload);
+  return children;
+}
+
+/** 複数フォルダ直下の子をまとめて監視する（フォルダの順に連結）。 */
+export function useBookmarkChildrenOf(folderIds: string[]): BookmarkNode[] {
+  const [children, setChildren] = useState<BookmarkNode[]>([]);
+  const key = folderIds.join(',');
+  const reload = useCallback(() => {
+    const ids = key ? key.split(',') : [];
+    void Promise.all(ids.map((id) => chrome.bookmarks.getChildren(id).catch(() => [] as BookmarkNode[])))
+      .then((lists) => setChildren(lists.flat()));
+  }, [key]);
   useEffect(reload, [reload]);
   useChromeEvents(BOOKMARK_EVENTS, reload);
   return children;

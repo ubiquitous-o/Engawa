@@ -1,4 +1,4 @@
-import { getChildrenSafe, getFavoritesFolderId } from '@shared/bookmarks';
+import { getFavoriteBookmarks } from '@shared/bookmarks';
 import { getFavTabMap, setFavTabMap } from '@shared/storage';
 import type { FavoritesState } from '@shared/types';
 import { normalizeUrl } from '@shared/url';
@@ -19,7 +19,7 @@ async function tabExists(tabId: number): Promise<chrome.tabs.Tab | null> {
 
 /** 対応表を検証し、対応のないお気に入りは URL でタブを探して紐付ける。 */
 export async function reconcile(): Promise<Record<string, number>> {
-  const favorites = (await getChildrenSafe(await getFavoritesFolderId())).filter((n) => !!n.url);
+  const favorites = await getFavoriteBookmarks();
   const map = await getFavTabMap();
   const next: Record<string, number> = {};
   const usedTabs = new Set<number>();
@@ -55,7 +55,7 @@ export async function reconcile(): Promise<Record<string, number>> {
 
 export async function getState(): Promise<FavoritesState> {
   const map = await reconcile();
-  const favorites = await getChildrenSafe(await getFavoritesFolderId());
+  const favorites = await getFavoriteBookmarks();
   const byId = new Map(favorites.map((f) => [f.id, f] as const));
   const state: FavoritesState = {};
   for (const [bookmarkId, tabId] of Object.entries(map)) {

@@ -3,8 +3,8 @@ import { send } from '@shared/messages';
 import { hostOf } from '@shared/url';
 import { endDrag, startDrag } from '../lib/dnd';
 import { openContextMenu } from '../lib/contextMenu';
-import { useChromeEvents } from '../lib/hooks';
-import { addToFavorites } from '../lib/open';
+import { addToFavoritesItems } from '../lib/favMenu';
+import { useChromeEvents, type BookmarkNode } from '../lib/hooks';
 import { Favicon } from './Favicon';
 import { Audio, Chevron, Close, Muted, Pin } from './Icons';
 import { Section } from './Section';
@@ -37,7 +37,7 @@ const GROUP_COLORS: Record<string, string> = {
 };
 
 interface Props {
-  favoritesFolderId: string;
+  favoritesFolders: BookmarkNode[];
   windowId: number | undefined;
   collapsed: boolean;
   onToggle: () => void;
@@ -45,7 +45,7 @@ interface Props {
 
 type Block = { kind: 'tab'; tab: chrome.tabs.Tab } | { kind: 'group'; group: chrome.tabGroups.TabGroup; tabs: chrome.tabs.Tab[] };
 
-export function TabsSection({ favoritesFolderId, windowId, collapsed, onToggle }: Props) {
+export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }: Props) {
   const [tabs, setTabs] = useState<chrome.tabs.Tab[]>([]);
   const [groups, setGroups] = useState<Map<number, chrome.tabGroups.TabGroup>>(new Map());
   // お気に入りに対応しているタブ。Arc の固定タブと同じで、一覧には出さずタイルの印で表す
@@ -108,7 +108,7 @@ export function TabsSection({ favoritesFolderId, windowId, collapsed, onToggle }
         onDragEnd={endDrag}
         onContextMenu={(e) =>
           openContextMenu(e, [
-            { label: 'お気に入りに追加', disabled: !/^https?:/.test(url), onSelect: () => addToFavorites(favoritesFolderId, { title, url }) },
+            ...addToFavoritesItems(favoritesFolders, { title, url }, !/^https?:/.test(url)),
             { label: tab.pinned ? 'ピン留めを解除' : 'ピン留め', onSelect: () => chrome.tabs.update(tab.id!, { pinned: !tab.pinned }) },
             { label: tab.mutedInfo?.muted ? 'ミュート解除' : 'ミュート', onSelect: () => chrome.tabs.update(tab.id!, { muted: !tab.mutedInfo?.muted }) },
             { label: '再読み込み', onSelect: () => chrome.tabs.reload(tab.id!) },

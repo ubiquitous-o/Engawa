@@ -344,20 +344,6 @@ input {
 .fav-tile.drop-after {
   box-shadow: 3px 0 0 0 var(--accent), var(--shadow);
 }
-.fav-tile.add {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--border);
-  color: var(--fg-faint);
-}
-.fav-tile.add:hover {
-  color: var(--accent);
-  box-shadow: inset 0 0 0 1.5px var(--accent);
-  transform: none;
-}
-.fav-tile.add svg {
-  width: 16px;
-  height: 16px;
-}
 .fav-empty {
   grid-column: 1 / -1;
   padding: 10px 6px;
@@ -634,6 +620,9 @@ input {
   background: var(--bg-solid);
   box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
   animation: pop var(--t);
+  /* 項目が多いときは画面内に収めてスクロール（max-height は JS が innerHeight から入れる） */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 @keyframes pop {
   from {
