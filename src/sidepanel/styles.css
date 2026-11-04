@@ -678,24 +678,6 @@ input {
   background: color-mix(in srgb, var(--accent) 75%, var(--fg-muted));
 }
 
-/* ---------- ドロップゾーン（タブ→ブックマークバー） ---------- */
-.drop-zone {
-  margin: 6px 2px 2px;
-  padding: 10px 8px;
-  border: 1.5px dashed var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--fg-faint);
-  font-size: 12px;
-  text-align: center;
-  transition: border-color var(--t), background var(--t), color var(--t);
-}
-.tree.zone-over .drop-zone,
-.drop-zone.over {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-text);
-}
-
 /* ---------- コンパクト表示 ---------- */
 :root[data-density="compact"] body {
   font-size: 12px;

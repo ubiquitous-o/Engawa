@@ -4,7 +4,7 @@ import { getExpandedFolders, setExpandedFolders, setFavoritesFolderIds } from '@
 import { hostOf } from '@shared/url';
 import { currentDrag, dropPositionFor, endDrag, startDrag, type DropPosition } from '../lib/dnd';
 import { openContextMenu, type MenuItem } from '../lib/contextMenu';
-import { useDragPayload, type BookmarkNode } from '../lib/hooks';
+import { type BookmarkNode } from '../lib/hooks';
 import { addToFavoritesItems } from '../lib/favMenu';
 import { openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
 import { Favicon } from './Favicon';
@@ -73,7 +73,6 @@ export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Pro
   const [drop, setDrop] = useState<DropState | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
   const [zoneOver, setZoneOver] = useState(false);
-  const dragPayload = useDragPayload();
   const bar = root.children?.find((n) => (n as { folderType?: string }).folderType === 'bookmarks-bar' || n.id === '1');
 
   useEffect(() => {
@@ -304,7 +303,7 @@ export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Pro
   };
   const isZone = (e: DragEvent) => {
     const t = e.target as HTMLElement;
-    return t === e.currentTarget || t.classList.contains('drop-zone');
+    return t === e.currentTarget;
   };
 
   if (!expanded) return null;
@@ -324,11 +323,6 @@ export function BookmarkTree({ root, favoritesFolders, favIndex, windowId }: Pro
       }}
     >
       {(root.children ?? []).map((n) => renderNode(n, 0))}
-      {dragPayload && bar && (
-        <div class={`drop-zone ${zoneOver ? 'over' : ''}`}>
-          {dragPayload.kind === 'tab' ? 'ここに落としてブックマークバーに追加' : 'ここに落としてブックマークバーへ移動'}
-        </div>
-      )}
     </div>
   );
 }
