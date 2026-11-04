@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { getCollapsedSections, setCollapsedSections } from '@shared/storage';
 import { applyTheme } from '@shared/theme';
+import { installPointerDrag } from './lib/dnd';
 import { installKeyboard } from './lib/keyboard';
 import { favoritesFolderTitle } from './lib/favMenu';
 import { useBookmarkChildrenOf, useBookmarkTree, useCurrentWindowId, useFavoritesFolders, useSettings } from './lib/hooks';
@@ -29,6 +30,8 @@ export function App() {
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => applyTheme(settings), [settings]);
+  // Vivaldi のパネルなど HTML5 DnD が始まらない環境向けの代替
+  useEffect(() => installPointerDrag(), []);
 
 
   useEffect(() => {
