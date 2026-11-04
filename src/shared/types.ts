@@ -14,6 +14,8 @@ export interface Settings {
   accentColor: string;
   /** 表示密度。compact は行とタイルを詰めて、狭い幅でも多く見せる */
   density: 'comfortable' | 'compact';
+  /** お気に入りタイルの大きさ（px）。タイルの最小幅で、アイコンもこれに比例する。compact はこの 0.8 倍 */
+  favTileSize: number;
   /** 背景のテーマ */
   theme: Theme;
   /** ユーザーが保存した背景プリセット */
@@ -68,9 +70,12 @@ export const DEFAULT_SETTINGS: Settings = {
   showTabs: true,
   accentColor: '#6366f1',
   density: 'comfortable',
+  favTileSize: 48,
   theme: DEFAULT_THEME,
   customThemes: [],
 };
+
+export const FAV_TILE_SIZE = { min: 30, max: 80, step: 1 } as const;
 
 export const ACCENT_PRESETS: { name: string; value: string }[] = [
   { name: 'Indigo', value: '#6366f1' },

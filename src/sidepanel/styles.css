@@ -263,8 +263,11 @@ input {
 .fav-grid {
   /* タイルの最小幅。これを下回る前に列を減らす。
      隙間は固定で、タイルが行いっぱいに広がる。列が変わる瞬間の大きさの差は
-     最小幅を小さめにして 1.3 倍程度に抑える（最小 48px なら 48〜66px の範囲） */
-  --fav-tile-min: 48px;
+     最小幅を小さめにして 1.3 倍程度に抑える（最小 48px なら 48〜66px の範囲）。
+     --fav-size は設定（お気に入りのアイコンサイズ）から applyTheme が入れる */
+  --fav-scale: 1;
+  --fav-tile-min: calc(var(--fav-size, 48px) * var(--fav-scale));
+  --fav-icon: calc(var(--fav-tile-min) * 0.55);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--fav-tile-min), 1fr));
   gap: 8px;
@@ -296,18 +299,18 @@ input {
   transform: translateY(0);
 }
 .fav-tile img {
-  width: 22px;
-  height: 22px;
+  width: var(--fav-icon);
+  height: var(--fav-icon);
   border-radius: 5px;
   pointer-events: none;
 }
 .fav-tile .letter {
-  width: 22px;
-  height: 22px;
+  width: var(--fav-icon);
+  height: var(--fav-icon);
   border-radius: 5px;
   display: grid;
   place-items: center;
-  font-size: 11px;
+  font-size: calc(var(--fav-icon) * 0.5);
   font-weight: 700;
   color: white;
   background: var(--accent);
@@ -698,14 +701,9 @@ input {
   height: 24px;
 }
 :root[data-density="compact"] .fav-grid {
-  --fav-tile-min: 38px;
+  --fav-scale: 0.8;
   gap: 6px;
   padding: 2px 2px 4px;
-}
-:root[data-density="compact"] .fav-tile img,
-:root[data-density="compact"] .fav-tile .letter {
-  width: 18px;
-  height: 18px;
 }
 :root[data-density="compact"] .fav-tile.open::after {
   bottom: 3px;

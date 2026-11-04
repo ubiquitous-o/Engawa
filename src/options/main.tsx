@@ -14,6 +14,7 @@ import {
   ACCENT_PRESETS,
   DEFAULT_SETTINGS,
   DEFAULT_THEME,
+  FAV_TILE_SIZE,
   INITIAL_PR_SYNC_STATE,
   THEME_PRESETS,
   type CustomTheme,
@@ -157,7 +158,10 @@ function Options() {
 
   return (
     <div class="page">
-      <h1>Engawa</h1>
+      <h1>
+        <img class="logo" src="/icons/icon128.png" alt="" width={36} height={36} />
+        Engawa
+      </h1>
       <p class="lead">サイドパネルの設定。データはすべて Chrome のブックマークに置き、この拡張が独自に保存するのは設定とトークンだけ。</p>
 
       <div class="card">
@@ -239,6 +243,28 @@ function Options() {
           checked={settings.notifyReviewRequests}
           onChange={(v) => void patch({ notifyReviewRequests: v })}
         />
+        <div class="fav-size">
+          <div>
+            <div class="label">お気に入りのアイコンサイズ</div>
+            <div class="hint">タイルの最小幅。幅に合わせて列数が変わる。コンパクト表示では 0.8 倍</div>
+          </div>
+          <div class="fav-size-row">
+            <input
+              type="range"
+              min={FAV_TILE_SIZE.min}
+              max={FAV_TILE_SIZE.max}
+              step={FAV_TILE_SIZE.step}
+              value={settings.favTileSize}
+              onInput={(e) => setSettings((s) => ({ ...s, favTileSize: Number((e.target as HTMLInputElement).value) }))}
+              onChange={(e) => void patch({ favTileSize: Number((e.target as HTMLInputElement).value) })}
+              aria-label="お気に入りのアイコンサイズ"
+            />
+            <span class="val">{settings.favTileSize}px</span>
+            <span class="fav-preview" style={{ '--s': `${settings.favTileSize}px` } as Record<string, string>} aria-hidden="true">
+              <span class="letter">E</span>
+            </span>
+          </div>
+        </div>
       </div>
 
       <div class="card">

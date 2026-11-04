@@ -1,4 +1,4 @@
-import type { Settings } from './types';
+import { FAV_TILE_SIZE, type Settings } from './types';
 
 /**
  * 設定を CSS 変数に落とす。サイドパネルと設定画面の両方で使う。
@@ -14,6 +14,7 @@ export function applyTheme(settings: Settings, root: HTMLElement = document.docu
   root.style.setProperty('--theme-pct', `${clamp(t.intensity, 0, 100)}%`);
   // グレインは 100 でも目に痛くない程度に抑える
   root.style.setProperty('--grain-opacity', String((clamp(t.grain, 0, 100) / 100) * 0.5));
+  root.style.setProperty('--fav-size', `${clamp(settings.favTileSize, FAV_TILE_SIZE.min, FAV_TILE_SIZE.max)}px`);
   root.dataset.themeMode = t.mode;
   root.dataset.density = settings.density;
 }

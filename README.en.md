@@ -22,7 +22,7 @@ npm run build
 2. **Load unpacked** → pick this repository's `dist/` folder
 3. Click the toolbar icon or press **Alt+S** to open the side panel
 
-Favorites have no dedicated folder: pick any folders under the bookmarks bar to "show as favorites". Each chosen folder gets its own section. With nothing picked, the bookmarks bar itself is used.
+Favorites have no dedicated folder: pick any folders under the bookmarks bar to "show as favorites". Each chosen folder gets its own section. With nothing picked, the bookmarks bar itself is used. Tile size is adjustable via "Favorites icon size" in the options page.
 
 The extension ID is pinned by the `key` (public key) in `manifest.json` (`lmjcicaaeilbjpcbimnclhafocijlifc`). An unpacked extension normally gets its ID from the folder it was loaded from, so unzipping a release somewhere else and loading it again would count as a different extension and lose your settings; with `key` the ID is the same wherever it is loaded from, so settings, token and favorites folders survive. Chrome loads only one extension per ID at a time, so remove the old copy before loading the new one. `key` is a public key, not a secret, and loading an unpacked extension needs no private key, so there is nothing to manage.
 
