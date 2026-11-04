@@ -15,14 +15,14 @@ export function SearchBox({ value, onChange, inputRef }: Props) {
         <input
           ref={inputRef}
           type="search"
-          placeholder="ブックマークを検索"
+          placeholder="Search bookmarks"
           value={value}
           onInput={(e) => onChange((e.target as HTMLInputElement).value)}
           spellcheck={false}
           autocomplete="off"
         />
         {value ? (
-          <button class="clear" onClick={() => { onChange(''); inputRef.current?.focus(); }} title="クリア (Esc)">
+          <button class="clear" onClick={() => { onChange(''); inputRef.current?.focus(); }} title="Clear (Esc)">
             <Close style="width:12px;height:12px" />
           </button>
         ) : (

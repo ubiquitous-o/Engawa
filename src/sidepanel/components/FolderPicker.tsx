@@ -28,11 +28,11 @@ export function FolderPicker({ root, selected }: Props) {
     if (!bar) return;
     const items: MenuItem[] = [];
     const mark = (id: string) => (selectedIds.has(id) ? '✓ ' : '　 ');
-    items.push({ label: `${mark(bar.id)}ブックマークバー（直下）`, onSelect: () => toggle(bar.id) });
+    items.push({ label: `${mark(bar.id)}Bookmarks bar (top level)`, onSelect: () => toggle(bar.id) });
     const walk = (n: BookmarkNode, depth: number) => {
       for (const c of n.children ?? []) {
         if (c.url) continue;
-        items.push({ label: `${mark(c.id)}${'　'.repeat(depth)}${c.title || '(無題)'}`, onSelect: () => toggle(c.id) });
+        items.push({ label: `${mark(c.id)}${'　'.repeat(depth)}${c.title || '(untitled)'}`, onSelect: () => toggle(c.id) });
         walk(c, depth + 1);
       }
     };
@@ -42,10 +42,10 @@ export function FolderPicker({ root, selected }: Props) {
   };
 
   const first = selected[0];
-  const label = selected.length === 1 && first ? favoritesFolderTitle(first) : `${selected.length} フォルダ`;
+  const label = selected.length === 1 && first ? favoritesFolderTitle(first) : `${selected.length} folders`;
 
   return (
-    <button class="pill-btn" title="お気に入りとして表示するフォルダを選ぶ（複数可）" onClick={open}>
+    <button class="pill-btn" title="Choose folders to show as favorites" onClick={open}>
       <Folder />
       <span class="title">{label}</span>
       <Chevron />

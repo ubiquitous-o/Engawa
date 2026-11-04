@@ -5,7 +5,7 @@ import { addToFavorites } from './open';
 /** お気に入りフォルダの表示名。ブックマークバー自体なら「ブックマークバー」。 */
 export function favoritesFolderTitle(folder: BookmarkNode): string {
   const isBar = (folder as { folderType?: string }).folderType === 'bookmarks-bar' || folder.id === '1';
-  return isBar ? 'ブックマークバー' : folder.title || '(無題)';
+  return isBar ? 'Bookmarks bar' : folder.title || '(untitled)';
 }
 
 /**
@@ -19,10 +19,10 @@ export function addToFavoritesItems(
 ): MenuItem[] {
   if (folders.length <= 1) {
     const target = folders[0];
-    return [{ label: 'お気に入りに追加', disabled: disabled || !target, onSelect: () => target && addToFavorites(target.id, item) }];
+    return [{ label: 'Add to favorites', disabled: disabled || !target, onSelect: () => target && addToFavorites(target.id, item) }];
   }
   return folders.map((f) => ({
-    label: `「${favoritesFolderTitle(f)}」に追加`,
+    label: `Add to "${favoritesFolderTitle(f)}"`,
     disabled,
     onSelect: () => addToFavorites(f.id, item),
   }));

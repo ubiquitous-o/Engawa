@@ -9,7 +9,7 @@ export async function getBookmarksBar(): Promise<Node> {
   const byType = children.find((n) => (n as { folderType?: string }).folderType === 'bookmarks-bar');
   const byId = children.find((n) => n.id === '1');
   const bar = byType ?? byId ?? children[0];
-  if (!bar) throw new Error('ブックマークバーが見つからない');
+  if (!bar) throw new Error('Bookmarks bar not found');
   return bar;
 }
 

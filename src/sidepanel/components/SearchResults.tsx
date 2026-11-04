@@ -31,7 +31,7 @@ export function SearchResults({ query, favoritesFolders, favIndex, windowId }: P
 
   return (
     <div>
-      <div class="results-head">{results.length === 0 ? '見つからない' : `${results.length} 件`}</div>
+      <div class="results-head">{results.length === 0 ? 'No results' : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}</div>
       {results.map((n) => (
         <div
           key={n.id}
@@ -46,12 +46,12 @@ export function SearchResults({ query, favoritesFolders, favIndex, windowId }: P
           }}
           onContextMenu={(e) =>
             openContextMenu(e, [
-              { label: '開く', onSelect: () => openBookmark(n.url!, favIndex, { windowId }) },
-              { label: 'バックグラウンドで開く', onSelect: () => openUrl(n.url!, { background: true, windowId }) },
-              { label: '現在のタブで開く', onSelect: () => openUrl(n.url!, { currentTab: true, windowId }) },
+              { label: 'Open', onSelect: () => openBookmark(n.url!, favIndex, { windowId }) },
+              { label: 'Open in background', onSelect: () => openUrl(n.url!, { background: true, windowId }) },
+              { label: 'Open in current tab', onSelect: () => openUrl(n.url!, { currentTab: true, windowId }) },
               ...addToFavoritesItems(favoritesFolders, { title: n.title, url: n.url! }),
               { separator: true },
-              { label: 'URL をコピー', onSelect: () => navigator.clipboard.writeText(n.url!) },
+              { label: 'Copy URL', onSelect: () => navigator.clipboard.writeText(n.url!) },
             ])
           }
         >

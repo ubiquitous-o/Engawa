@@ -22,7 +22,7 @@ type Envelope<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export async function send<R extends Request>(req: R): Promise<ResponseMap[R['type']]> {
   const res = (await chrome.runtime.sendMessage(req)) as Envelope<ResponseMap[R['type']]> | undefined;
-  if (!res) throw new Error('バックグラウンドから応答がない');
+  if (!res) throw new Error('No response from the background worker');
   if (!res.ok) throw new Error(res.error);
   return res.data;
 }

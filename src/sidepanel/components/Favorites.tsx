@@ -77,15 +77,15 @@ export function Favorites({ folderId, windowId }: Props) {
   const menuFor = (id: string, url: string) => (e: MouseEvent) => {
     const st = state[id];
     openContextMenu(e, [
-      { label: '開く', onSelect: () => open(id) },
-      { label: '新しいタブで開く', onSelect: () => chrome.tabs.create({ url, windowId }) },
+      { label: 'Open', onSelect: () => open(id) },
+      { label: 'Open in new tab', onSelect: () => chrome.tabs.create({ url, windowId }) },
       { separator: true },
-      { label: '元のURLに戻す', disabled: !st?.drifted, onSelect: () => send({ type: 'fav:restore', bookmarkId: id }).then(refreshState) },
-      { label: 'タブを閉じる', disabled: !st, onSelect: () => send({ type: 'fav:closeTab', bookmarkId: id }).then(refreshState) },
+      { label: 'Go back to saved URL', disabled: !st?.drifted, onSelect: () => send({ type: 'fav:restore', bookmarkId: id }).then(refreshState) },
+      { label: 'Close tab', disabled: !st, onSelect: () => send({ type: 'fav:closeTab', bookmarkId: id }).then(refreshState) },
       { separator: true },
-      { label: 'URL をコピー', onSelect: () => navigator.clipboard.writeText(url) },
+      { label: 'Copy URL', onSelect: () => navigator.clipboard.writeText(url) },
       {
-        label: 'お気に入りから外す',
+        label: 'Remove from favorites',
         onSelect: async () => {
           // データは消さず「その他のブックマーク」へ移す
           const [root] = await chrome.bookmarks.getTree();
@@ -95,7 +95,7 @@ export function Favorites({ folderId, windowId }: Props) {
           if (other) await chrome.bookmarks.move(id, { parentId: other.id });
         },
       },
-      { label: '削除', danger: true, confirm: '本当に削除する？', onSelect: () => chrome.bookmarks.remove(id) },
+      { label: 'Delete', danger: true, confirm: 'Delete this bookmark?', onSelect: () => chrome.bookmarks.remove(id) },
     ]);
   };
 
@@ -135,7 +135,7 @@ export function Favorites({ folderId, windowId }: Props) {
             role="button"
             tabIndex={-1}
             data-nav
-            title={`${item.title}\n${url}${st?.drifted ? `\n現在: ${st.currentUrl}` : ''}`}
+            title={`${item.title}\n${url}${st?.drifted ? `\nNow: ${st.currentUrl}` : ''}`}
             draggable
             onClick={() => open(item.id)}
             onAuxClick={(e) => {
@@ -166,7 +166,7 @@ export function Favorites({ folderId, windowId }: Props) {
           </div>
         );
       })}
-      {items.length === 0 && <div class="fav-empty">タブやブックマークをここにドラッグ</div>}
+      {items.length === 0 && <div class="fav-empty">Drag tabs or bookmarks here</div>}
     </div>
   );
 }

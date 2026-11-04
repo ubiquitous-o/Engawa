@@ -138,12 +138,12 @@ export function useRelativeTime(at: number | null): string {
     const t = setInterval(() => tick((n) => n + 1), 30_000);
     return () => clearInterval(t);
   }, []);
-  if (!at) return '未同期';
+  if (!at) return 'Not synced';
   const diff = Math.max(0, Date.now() - at);
   const m = Math.floor(diff / 60_000);
-  if (m < 1) return 'たった今';
-  if (m < 60) return `${m}分前`;
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}時間前`;
-  return `${Math.floor(h / 24)}日前`;
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }

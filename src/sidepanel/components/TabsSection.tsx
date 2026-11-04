@@ -90,7 +90,7 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
 
   const renderTab = (tab: chrome.tabs.Tab) => {
     const url = tab.url ?? tab.pendingUrl ?? '';
-    const title = tab.title || hostOf(url) || '新しいタブ';
+    const title = tab.title || hostOf(url) || 'New tab';
     return (
       <div
         key={tab.id}
@@ -109,13 +109,13 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
         onContextMenu={(e) =>
           openContextMenu(e, [
             ...addToFavoritesItems(favoritesFolders, { title, url }, !/^https?:/.test(url)),
-            { label: tab.pinned ? 'ピン留めを解除' : 'ピン留め', onSelect: () => chrome.tabs.update(tab.id!, { pinned: !tab.pinned }) },
-            { label: tab.mutedInfo?.muted ? 'ミュート解除' : 'ミュート', onSelect: () => chrome.tabs.update(tab.id!, { muted: !tab.mutedInfo?.muted }) },
-            { label: '再読み込み', onSelect: () => chrome.tabs.reload(tab.id!) },
-            { label: '複製', onSelect: () => chrome.tabs.duplicate(tab.id!) },
+            { label: tab.pinned ? 'Unpin' : 'Pin', onSelect: () => chrome.tabs.update(tab.id!, { pinned: !tab.pinned }) },
+            { label: tab.mutedInfo?.muted ? 'Unmute' : 'Mute', onSelect: () => chrome.tabs.update(tab.id!, { muted: !tab.mutedInfo?.muted }) },
+            { label: 'Reload', onSelect: () => chrome.tabs.reload(tab.id!) },
+            { label: 'Duplicate', onSelect: () => chrome.tabs.duplicate(tab.id!) },
             { separator: true },
-            { label: 'URL をコピー', disabled: !url, onSelect: () => navigator.clipboard.writeText(url) },
-            { label: '閉じる', danger: true, onSelect: () => close(tab) },
+            { label: 'Copy URL', disabled: !url, onSelect: () => navigator.clipboard.writeText(url) },
+            { label: 'Close', danger: true, onSelect: () => close(tab) },
           ])
         }
       >
@@ -125,7 +125,7 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
         {tab.mutedInfo?.muted ? <Muted class="audio" /> : tab.audible ? <Audio class="audio" /> : null}
         <button
           class="hover-btn"
-          title="閉じる"
+          title="Close"
           onClick={(e) => {
             e.stopPropagation();
             close(tab);
@@ -138,7 +138,7 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
   };
 
   return (
-    <Section title="タブ" count={visible.length} collapsed={collapsed} onToggle={onToggle}>
+    <Section title="Tabs" count={visible.length} collapsed={collapsed} onToggle={onToggle}>
       {blocks.map((b) =>
         b.kind === 'tab' ? (
           renderTab(b.tab)
@@ -156,7 +156,7 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
               onClick={() => void chrome.tabGroups.update(b.group.id, { collapsed: !b.group.collapsed })}
             >
               <Chevron />
-              <span class="title">{b.group.title || '無題のグループ'}</span>
+              <span class="title">{b.group.title || 'Untitled group'}</span>
               <span class="count">{b.tabs.length}</span>
             </div>
             {!b.group.collapsed && b.tabs.map(renderTab)}

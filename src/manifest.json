@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Engawa",
-  "description": "縁側。お気に入り・ブックマーク・GitHub PR・開いているタブを横に置くサイドパネル",
+  "description": "Engawa: a side panel with favorites, bookmarks, GitHub pull requests and open tabs beside the page",
   "version": "0.0.0",
   "minimum_chrome_version": "116",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwSIFfgrJ1AM6TktuH7faPOB29hpedA82rwkjrN4lUow5n3YJRgSFfiC2XTj7FY43r0/R2EIadO/Rh/9q2MGN5uC9wjwRvRAF9pZAH7WhopcswjJ71YESSmnDjgOzAxGSd9Dc3AeZXoxHTZlgXdp+qPMUfj7zlvArgcA0F/bKTqxsljRlyQ35Ag6vX5RPxn5/oB5WQVAYcHtTixrOqIVLZMQ3jP/MBu97ypCVR6KHL0u5+aStBa8PhEndwqRYZvjQt/U5R+PZ9wo8/w7Z8It0Os0Jb9tDFQHBJ7ygpDHnKWxIh/HhO1DTEq6jQ3H1d9CVLBQhsuQrtJcxITsU051L9QIDAQAB",
@@ -34,7 +34,7 @@
       "suggested_key": {
         "default": "Alt+S"
       },
-      "description": "サイドパネルを開閉"
+      "description": "Toggle the side panel"
     }
   },
   "permissions": [

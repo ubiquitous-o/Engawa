@@ -78,14 +78,14 @@ export function App() {
             {favFolders.map((folder, i) => (
               <Section
                 key={folder.id}
-                title={favFolders.length === 1 ? 'お気に入り' : favoritesFolderTitle(folder)}
+                title={favFolders.length === 1 ? 'Favorites' : favoritesFolderTitle(folder)}
                 collapsed={collapsed.has(`fav:${folder.id}`)}
                 onToggle={() => toggleSection(`fav:${folder.id}`)}
                 actions={
                   i === 0 ? (
                     <>
                       <FolderPicker root={root} selected={favFolders} />
-                      <button class="icon-btn" title="設定" onClick={() => void chrome.runtime.openOptionsPage()}>
+                      <button class="icon-btn" title="Settings" onClick={() => void chrome.runtime.openOptionsPage()}>
                         <Gear />
                       </button>
                     </>
@@ -98,7 +98,7 @@ export function App() {
             {settings.showPR && (
               <PRSection windowId={windowId} collapsed={collapsed.has('pr')} onToggle={() => toggleSection('pr')} />
             )}
-            <Section title="ブックマーク" collapsed={collapsed.has('bookmarks')} onToggle={() => toggleSection('bookmarks')}>
+            <Section title="Bookmarks" collapsed={collapsed.has('bookmarks')} onToggle={() => toggleSection('bookmarks')}>
               <BookmarkTree root={root} treeRoot={treeRoot ?? root} favoritesFolders={favFolders} favIndex={favIndex} windowId={windowId} />
             </Section>
             {settings.showTabs && (

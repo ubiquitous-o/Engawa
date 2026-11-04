@@ -77,7 +77,7 @@ export async function getState(): Promise<FavoritesState> {
 /** お気に入りをクリック: 対応タブがあれば切り替え、なければ開く。 */
 export async function open(bookmarkId: string, preferredWindowId?: number): Promise<number> {
   const [fav] = await chrome.bookmarks.get(bookmarkId);
-  if (!fav?.url) throw new Error('お気に入りが見つからない');
+  if (!fav?.url) throw new Error('Favorite not found');
   const map = await reconcile();
   const existing = map[bookmarkId];
   if (existing !== undefined) {
@@ -89,7 +89,7 @@ export async function open(bookmarkId: string, preferredWindowId?: number): Prom
     }
   }
   const created = await chrome.tabs.create({ url: fav.url, active: true, windowId: preferredWindowId });
-  if (created.id === undefined) throw new Error('タブを作れなかった');
+  if (created.id === undefined) throw new Error('Could not create a tab');
   map[bookmarkId] = created.id;
   await setFavTabMap(map);
   return created.id;

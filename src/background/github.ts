@@ -49,10 +49,10 @@ async function searchPRs(apiBase: string, token: string, query: string): Promise
       },
     });
   } catch {
-    throw new GitHubError(0, 'GitHub に接続できない');
+    throw new GitHubError(0, 'Could not connect to GitHub');
   }
   if (!res.ok) {
-    throw new GitHubError(res.status, `GitHub API エラー (HTTP ${res.status})`);
+    throw new GitHubError(res.status, `GitHub API error (HTTP ${res.status})`);
   }
   const body = (await res.json()) as SearchResponse;
   return (body.items ?? []).map((it) => ({
@@ -89,7 +89,7 @@ async function notifyNewReviews(added: PRItem[]): Promise<void> {
     await chrome.notifications.create(id, {
       type: 'basic',
       iconUrl,
-      title: `新しいレビュー依頼 ${added.length} 件`,
+      title: `${added.length} new review requests`,
       message: added.map((a) => `[${a.repo}#${a.number}] ${a.title}`).slice(0, 5).join('\n'),
     });
   } else {
@@ -99,7 +99,7 @@ async function notifyNewReviews(added: PRItem[]): Promise<void> {
       await chrome.notifications.create(id, {
         type: 'basic',
         iconUrl,
-        title: '新しいレビュー依頼',
+        title: 'New review request',
         message: `[${item.repo}#${item.number}] ${item.title}`,
       });
     }
@@ -169,7 +169,7 @@ async function doSync(): Promise<PRSyncState> {
       await setBadge('!', '#dc2626');
       const next = await updatePRSyncState({
         status: 'unauthorized',
-        lastError: 'トークンが無効。設定画面で入れ直して',
+        lastError: 'Token is invalid. Enter it again in the settings',
         nextRunAt: null,
       });
       await chrome.alarms.clear(ALARM_NAME);
@@ -179,7 +179,7 @@ async function doSync(): Promise<PRSyncState> {
       const backoff = Math.min(MAX_BACKOFF, Math.max(1, prev.backoff) * 2);
       const next = await updatePRSyncState({
         status: 'rate_limited',
-        lastError: `レート制限。間隔を ${backoff} 倍にして再試行`,
+        lastError: `Rate limited. Retrying at ${backoff}× the interval`,
         backoff,
       });
       await scheduleAlarm();
@@ -187,7 +187,7 @@ async function doSync(): Promise<PRSyncState> {
     }
     const next = await updatePRSyncState({
       status: 'error',
-      lastError: e instanceof Error ? e.message : '不明なエラー',
+      lastError: e instanceof Error ? e.message : 'Unknown error',
     });
     await scheduleAlarm();
     return next;
@@ -199,7 +199,7 @@ export async function testToken(
   token: string | null,
   apiBase: string,
 ): Promise<{ ok: true; login: string } | { ok: false; error: string }> {
-  if (!token) return { ok: false, error: 'トークンが未設定' };
+  if (!token) return { ok: false, error: 'No token set' };
   try {
     const res = await fetch(`${apiBaseFrom(apiBase)}/user`, {
       headers: {
@@ -208,12 +208,12 @@ export async function testToken(
         'X-GitHub-Api-Version': '2022-11-28',
       },
     });
-    if (res.status === 401) return { ok: false, error: 'トークンが無効 (401)' };
+    if (res.status === 401) return { ok: false, error: 'Token is invalid (401)' };
     if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
     const body = (await res.json()) as { login?: string };
-    return { ok: true, login: body.login ?? '(不明)' };
+    return { ok: true, login: body.login ?? '(unknown)' };
   } catch {
-    return { ok: false, error: '接続できない。URL とホスト権限を確認して' };
+    return { ok: false, error: 'Could not connect. Check the URL and host permission' };
   }
 }
 

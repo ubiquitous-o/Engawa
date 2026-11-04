@@ -31,10 +31,10 @@ function PRRow({ item, windowId }: { item: PRItem; windowId: number | undefined 
       }}
       onContextMenu={(e) =>
         openContextMenu(e, [
-          { label: '開く', onSelect: () => openUrl(item.url, { reuse: true, windowId }) },
-          { label: 'バックグラウンドで開く', onSelect: () => openUrl(item.url, { background: true, windowId }) },
+          { label: 'Open', onSelect: () => openUrl(item.url, { reuse: true, windowId }) },
+          { label: 'Open in background', onSelect: () => openUrl(item.url, { background: true, windowId }) },
           { separator: true },
-          { label: 'URL をコピー', onSelect: () => navigator.clipboard.writeText(item.url) },
+          { label: 'Copy URL', onSelect: () => navigator.clipboard.writeText(item.url) },
         ])
       }
     >
@@ -70,16 +70,16 @@ export function PRSection({ windowId, collapsed, onToggle }: Props) {
   let status: { cls: string; text: string; action?: string } | null = null;
   switch (sync.status) {
     case 'no_token':
-      status = { cls: 'warn', text: 'GitHub トークンが未設定', action: '設定を開く' };
+      status = { cls: 'warn', text: 'No GitHub token', action: 'Open settings' };
       break;
     case 'unauthorized':
-      status = { cls: 'error', text: 'トークンが無効', action: '設定を開く' };
+      status = { cls: 'error', text: 'Token is invalid', action: 'Open settings' };
       break;
     case 'rate_limited':
-      status = { cls: 'warn', text: `レート制限中。間隔を ${sync.backoff} 倍にして再試行` };
+      status = { cls: 'warn', text: `Rate limited. Retrying at ${sync.backoff}× the interval` };
       break;
     case 'error':
-      status = { cls: 'error', text: sync.lastError ?? 'エラー' };
+      status = { cls: 'error', text: sync.lastError ?? 'Error' };
       break;
   }
 
@@ -90,11 +90,11 @@ export function PRSection({ windowId, collapsed, onToggle }: Props) {
       count={review.length + mine.length}
       collapsed={collapsed}
       onToggle={onToggle}
-      meta={sync.status === 'syncing' ? '同期中…' : rel}
+      meta={sync.status === 'syncing' ? 'Syncing…' : rel}
       actions={
         <button
           class={`icon-btn ${sync.status === 'syncing' ? 'spin' : ''}`}
-          title="今すぐ同期"
+          title="Sync now"
           onClick={syncNow}
           disabled={sync.status === 'syncing'}
         >
@@ -113,15 +113,15 @@ export function PRSection({ windowId, collapsed, onToggle }: Props) {
         </div>
       )}
       <div class="pr-group-head">
-        <span>レビュー依頼</span>
+        <span>Review requests</span>
         <span class="badge">{review.length}</span>
       </div>
-      {review.length === 0 ? <div class="empty-note">なし</div> : review.map((p) => <PRRow key={p.url} item={p} windowId={windowId} />)}
+      {review.length === 0 ? <div class="empty-note">None</div> : review.map((p) => <PRRow key={p.url} item={p} windowId={windowId} />)}
       <div class="pr-group-head">
-        <span>自分のPR</span>
+        <span>My pull requests</span>
         <span class="badge">{mine.length}</span>
       </div>
-      {mine.length === 0 ? <div class="empty-note">なし</div> : mine.map((p) => <PRRow key={p.url} item={p} windowId={windowId} />)}
+      {mine.length === 0 ? <div class="empty-note">None</div> : mine.map((p) => <PRRow key={p.url} item={p} windowId={windowId} />)}
     </Section>
   );
 }

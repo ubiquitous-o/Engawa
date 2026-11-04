@@ -146,18 +146,18 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     const items: MenuItem[] = [];
     if (!isFolder) {
       items.push(
-        { label: '開く', onSelect: () => openBookmark(node.url!, favIndex, { windowId }) },
-        { label: 'バックグラウンドで開く', onSelect: () => openUrl(node.url!, { background: true, windowId }) },
-        { label: '現在のタブで開く', onSelect: () => openUrl(node.url!, { currentTab: true, windowId }) },
+        { label: 'Open', onSelect: () => openBookmark(node.url!, favIndex, { windowId }) },
+        { label: 'Open in background', onSelect: () => openUrl(node.url!, { background: true, windowId }) },
+        { label: 'Open in current tab', onSelect: () => openUrl(node.url!, { currentTab: true, windowId }) },
         ...addToFavoritesItems(favoritesFolders, { title: node.title, url: node.url! }),
         { separator: true },
-        { label: 'URL をコピー', onSelect: () => navigator.clipboard.writeText(node.url!) },
+        { label: 'Copy URL', onSelect: () => navigator.clipboard.writeText(node.url!) },
       );
     } else {
       const underBar = bar ? node.id === bar.id || isDescendant(map, node.id, bar.id) : false;
       items.push(
         {
-          label: favoritesFolderIds.includes(node.id) ? 'お気に入り表示から外す' : 'お気に入りとして表示',
+          label: favoritesFolderIds.includes(node.id) ? 'Hide from favorites' : 'Show as favorites',
           disabled: !underBar,
           onSelect: () =>
             setFavoritesFolderIds(
@@ -166,16 +166,16 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
         },
         { separator: true },
         {
-          label: 'すべて開く',
+          label: 'Open all',
           disabled: !node.children?.some((c) => c.url),
           onSelect: async () => {
             for (const c of node.children ?? []) if (c.url) await chrome.tabs.create({ url: c.url, windowId, active: false });
           },
         },
         {
-          label: '新しいフォルダ',
+          label: 'New folder',
           onSelect: async () => {
-            const created = await chrome.bookmarks.create({ parentId: node.id, title: '新しいフォルダ', index: 0 });
+            const created = await chrome.bookmarks.create({ parentId: node.id, title: 'New folder', index: 0 });
             toggle(node.id, true);
             setRenaming(created.id);
           },
@@ -184,11 +184,11 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
       );
     }
     if (!isRoot) {
-      items.push({ label: '名前を変更', onSelect: () => setRenaming(node.id) });
+      items.push({ label: 'Rename', onSelect: () => setRenaming(node.id) });
       items.push({
-        label: '削除',
+        label: 'Delete',
         danger: true,
-        confirm: isFolder && node.children?.length ? `フォルダごと ${node.children.length} 件削除する？` : '本当に削除する？',
+        confirm: isFolder && node.children?.length ? `Delete this folder and its ${node.children.length} items?` : 'Delete this bookmark?',
         onSelect: () => (isFolder ? chrome.bookmarks.removeTree(node.id) : chrome.bookmarks.remove(node.id)),
       });
     }
@@ -201,7 +201,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     const isRoot = !node.parentId || node.parentId === '0';
     const indent = 6 + depth * 14;
     const dropCls = drop?.id === node.id ? `drop-${drop.pos}` : '';
-    const title = node.title || (isFolder ? '(無題のフォルダ)' : hostOf(node.url));
+    const title = node.title || (isFolder ? '(untitled folder)' : hostOf(node.url));
 
     const onClick = (e: MouseEvent) => {
       if (renaming === node.id) return;
@@ -282,7 +282,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
         {isFolder && isOpen && node.children && (
           <div class="tree-children" style={{ '--indent': `${indent}px` } as Record<string, string>}>
             {node.children.length === 0 ? (
-              <div class="empty-note" style={{ paddingLeft: `${indent + 26}px` }}>空</div>
+              <div class="empty-note" style={{ paddingLeft: `${indent + 26}px` }}>Empty</div>
             ) : (
               node.children.map((c) => renderNode(c, depth + 1))
             )}
