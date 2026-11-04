@@ -261,9 +261,12 @@ input {
 
 /* ---------- お気に入りグリッド ---------- */
 .fav-grid {
+  /* タイルの最小幅。これを下回る前に列を減らす。
+     隙間は固定で、タイルが行いっぱいに広がる。列が変わる瞬間の大きさの差は
+     最小幅を小さめにして 1.3 倍程度に抑える（最小 48px なら 48〜66px の範囲） */
+  --fav-tile-min: 48px;
   display: grid;
-  /* 幅に応じて列数が変わる。最小幅 320px では 4 列、広げると増える */
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--fav-tile-min), 1fr));
   gap: 8px;
   padding: 4px 2px 6px;
   min-height: 40px;
@@ -713,7 +716,7 @@ input {
   height: 24px;
 }
 :root[data-density="compact"] .fav-grid {
-  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  --fav-tile-min: 38px;
   gap: 6px;
   padding: 2px 2px 4px;
 }
