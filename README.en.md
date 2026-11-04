@@ -7,9 +7,13 @@
 An *engawa* is the wooden veranda that runs along the side of a Japanese house. Engawa is a personal Manifest V3 extension that lines up favorites, bookmarks, GitHub pull requests and open tabs in Chrome's side panel.
 Favorites simply display one or more folders on the bookmarks bar; the extension never writes to your bookmarks (and never uses pinned tabs). Remove the extension or move to another browser and your bookmarks are untouched. The only things the extension keeps for itself are settings, the GitHub token, the PR list and the favorite↔tab map.
 
+<p align="center"><img src="docs/engawa.gif" width="720" alt="Engawa side panel in action"></p>
+
 ## Install
 
 Grab `engawa-vX.Y.Z.zip` from [Releases](https://github.com/ubiquitous-o/Engawa/releases), unzip it, and load the folder with steps 1–2 below.
+
+**[Vivaldi](https://vivaldi.com/) is the recommended browser.** Any Chromium browser works, but Vivaldi lets the side panel go narrower than Chrome's minimum (around 320px) and can hide its tab bar and address bar in its own settings, which gets much closer to the Arc look. In Vivaldi, load the extension from `vivaldi://extensions`.
 
 ## Build from source
 
@@ -82,8 +86,8 @@ The accent color (selection rings, badges) is chosen separately. Light/dark foll
 
 ## Chrome limitations
 
-- **The tab strip and the address bar cannot be hidden by an extension.** Chrome's native vertical tabs feature removes the horizontal tab strip, nothing more
-- **Chrome sets the side panel's minimum width** (around 320px). An extension cannot make it narrower. Use "Compact mode" in the options to fit more into the same width
+- **The tab strip and the address bar cannot be hidden by an extension.** Chrome's native vertical tabs feature removes the horizontal tab strip, nothing more. Vivaldi can hide both in its settings
+- **Chrome sets the side panel's minimum width** (around 320px). An extension cannot make it narrower. Use "Compact mode" in the options to fit more into the same width. Vivaldi allows a narrower panel
 
 ## Layout
 

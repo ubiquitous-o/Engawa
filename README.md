@@ -7,9 +7,13 @@
 家の横に張り出した板の間、縁側。Chrome のサイドパネルに「お気に入り・ブックマーク・GitHub PR・開いているタブ」を縦に並べる、自分用の Manifest V3 拡張。
 お気に入りはブックマークバーのフォルダそのものを表示するだけで（複数選べる）、拡張はブックマークに何も書かない（pin タブも使わない）。拡張を消しても、別ブラウザに移っても、ブックマークはそのまま残る。拡張が独自に持つのは設定・GitHub トークン・PR 一覧・タブ対応表だけ。
 
+<p align="center"><img src="docs/engawa.gif" width="720" alt="Engawa のサイドパネルを操作している様子"></p>
+
 ## インストール
 
 [Releases](https://github.com/ubiquitous-o/Engawa/releases) から `engawa-vX.Y.Z.zip` を落として展開し、下の手順 1〜2 で展開したフォルダを読み込む。
+
+**ブラウザは [Vivaldi](https://vivaldi.com/ja/) を推奨。** Chrome 系ならどれでも動くが、Vivaldi はサイドパネルを Chrome の最小幅（およそ 320px）より狭くでき、タブバーやアドレスバーも自前の設定で隠せるので、Arc に近い見た目にしやすい。Vivaldi では `vivaldi://extensions` から読み込む。
 
 ## ソースからビルドして読み込む
 
@@ -82,8 +86,8 @@ npm run build
 
 ## Chrome 側の制約
 
-- **タブバー・URL バーは拡張から隠せない**。Chrome の縦タブ機能でタブバーだけは横から消せる
-- **サイドパネルの最小幅は Chrome が決めている**（およそ 320px）。拡張からは狭くできない。代わりに設定の「Compact mode」で行とタイルを詰める
+- **タブバー・URL バーは拡張から隠せない**。Chrome の縦タブ機能でタブバーだけは横から消せる。Vivaldi なら設定で両方とも隠せる
+- **サイドパネルの最小幅は Chrome が決めている**（およそ 320px）。拡張からは狭くできない。代わりに設定の「Compact mode」で行とタイルを詰める。Vivaldi はこれより狭くできる
 
 ## 構成
 
