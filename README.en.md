@@ -108,6 +108,11 @@ For when the window is rounded but the page inside is square. This is done in Vi
 
    Change the radius with `--radius` in the file (20px by default) and keep `--radiusHalf` at half of it, then restart. Input fields and buttons use the same value, so they change too. To undo, clear the folder setting
 
+The same file carries two more tweaks.
+
+- Even 7px margins on all four sides of the page (Vivaldi's unified design is tighter on the left and top)
+- The address field that pops up when the address bar is hidden is centred on the page area instead of the whole window: beside the side panel when it is open, across the window when it is not
+
 ## Chrome limitations
 
 - **The tab strip and the address bar cannot be hidden by an extension.** Chrome's native vertical tabs feature removes the horizontal tab strip, nothing more. Vivaldi can hide both in its settings

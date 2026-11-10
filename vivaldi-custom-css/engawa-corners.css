@@ -28,3 +28,31 @@
   box-sizing: border-box;
   padding: 2px 2px 0 2px;
 }
+
+/*
+ * アドレスバーを非表示にしているときに出る「浮いた入力欄」（新しいタブを開いたときなど）を、
+ * ウィンドウ全体ではなくページの領域の中央に置く。
+ * Vivaldi の元の規則は position: absolute / margin: 0 20% / width: 60% で、基準がウィンドウ幅。
+ * サイドパネルが出ていると、ページの中央からパネルの半分ぶんずれる。
+ * ページの領域（#webpage-stack）を目印にして、その幅の 60% を、その中央に置く。
+ * パネルが出ていなければページの領域＝ほぼウィンドウ全体なので、全体の中央になる。
+ * 目印を使うには入力欄を画面基準（fixed）にする必要がある。
+ * 目印が取れないときは、元と同じ「画面幅の 60%・中央」になる。
+ */
+#browser #webpage-stack {
+  anchor-name: --engawa-page;
+}
+#browser.address-top-off .toolbar-mainbar .UrlBar-AddressField,
+#browser.address-bottom-off .toolbar-mainbar .UrlBar-AddressField,
+#browser .toolbar-mainbar.toolbar-required .UrlBar-AddressField {
+  position: fixed;
+  margin: 0;
+  left: calc(anchor(--engawa-page left, 0px) + anchor-size(--engawa-page width, 100vw) * 0.2);
+  width: calc(anchor-size(--engawa-page width, 100vw) * 0.6);
+}
+#browser.address-bottom-off .toolbar-mainbar .UrlBar-AddressField {
+  bottom: calc(anchor(--engawa-page bottom, 7px) + 8px);
+}
+#browser.address-top-off .toolbar-mainbar .UrlBar-AddressField {
+  top: calc(anchor(--engawa-page top, 7px) + 8px);
+}
