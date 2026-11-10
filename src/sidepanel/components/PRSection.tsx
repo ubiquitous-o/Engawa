@@ -88,6 +88,7 @@ export function PRSection({ windowId, collapsed, onToggle }: Props) {
     <Section
       title="Pull Requests"
       count={review.length + mine.length}
+      countAlert={review.length + mine.length > 0}
       collapsed={collapsed}
       onToggle={onToggle}
       meta={sync.status === 'syncing' ? 'Syncing…' : rel}

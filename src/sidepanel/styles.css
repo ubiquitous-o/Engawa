@@ -210,6 +210,27 @@ input {
   color: var(--fg-faint);
   margin-left: 2px;
 }
+/* PR が来ているとき。セクションを畳んでいても見落とさないよう、見出しの行ごとオレンジにする。
+   赤は「トークン無効」などのエラーに使っているので、知らせにはオレンジを使う */
+.section-head:has(.section-count.alert) {
+  --alert: #f97316;
+  background: color-mix(in srgb, var(--alert) 20%, transparent);
+  box-shadow: inset 3px 0 0 0 var(--alert);
+  border-radius: 6px;
+  color: color-mix(in srgb, var(--alert) 65%, var(--fg));
+}
+.section-count.alert {
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: var(--alert);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0;
+  display: grid;
+  place-items: center;
+}
 .section-actions {
   display: flex;
   align-items: center;
