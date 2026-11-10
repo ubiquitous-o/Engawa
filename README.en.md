@@ -59,6 +59,7 @@ To release, bump `version` in `package.json` and push a `v`-prefixed tag; GitHub
 | Drag a tab or bookmark onto favorites | Add to that folder or reorder. With several folders, right-click "Add to favorites" lists one entry per folder |
 | Drag a tab onto the bookmark tree | Drop on a folder to add inside it, between rows to add next to them, or on the drop zone below to append to the bookmarks bar |
 | Drag a bookmark | Reorder or move into a folder |
+| Drag a tab, favorite or bookmark out of the panel onto the page | Puts it next to the tab you are viewing and shows both in a split view. Favorites and bookmarks are opened first if they have no tab. Release over the left or right half of the page to choose the side; in Vivaldi, releasing near the top or bottom stacks them vertically (Chrome's split view is side by side only). While dragging, the panel shows where it will land. Right-click → "Unsplit" to undo. Uses Vivaldi's own tab tiling in Vivaldi, and `tabs.createSplit` (Chrome 155+) in Chrome |
 | Click a bookmark | Opens in a new tab. If the URL is a favorite, no new tab is added: it opens as that favorite's tab (the tile lights up). Middle-click / Cmd+click opens in the background. Right-click offers "Open in current tab" |
 | Double-click a bookmark / right-click → Rename | Rename inline |
 | `/` | Focus search |

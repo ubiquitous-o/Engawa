@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { getCollapsedSections, setCollapsedSections } from '@shared/storage';
 import { applyTheme } from '@shared/theme';
-import { installPointerDrag } from './lib/dnd';
+import { send } from '@shared/messages';
+import { normalizeUrl } from '@shared/url';
+import { installPointerDrag, setOutsideDropHandler, setOutsideHoverHandler } from './lib/dnd';
+import { probeVivaldiTiling, splitTabs, verticalSplitPossible, type SplitSide } from './lib/split';
 import { installKeyboard } from './lib/keyboard';
 import { favoritesFolderTitle } from './lib/favMenu';
 import { useBookmarkChildrenOf, useBookmarkRootId, useBookmarkTree, useCurrentWindowId, useFavoritesFolders, useSettings, type BookmarkNode } from './lib/hooks';
@@ -16,6 +19,23 @@ import { SearchBox } from './components/SearchBox';
 import { SearchResults } from './components/SearchResults';
 import { Section } from './components/Section';
 import { TabsSection } from './components/TabsSection';
+
+/**
+ * ページの上のどこで離したかから、置く側を決める。
+ * 上 1/4 なら上、下 1/4 なら下、そのあいだは左半分か右半分か。
+ * 横: パネルが左にあれば clientX はパネル幅より大きく、右にあれば負になる。
+ * 縦: パネルはページとほぼ同じ高さなので、パネルの高さをページの高さとみなす。
+ */
+function dropSide(clientX: number, clientY: number, windowWidth: number): SplitSide {
+  if (verticalSplitPossible()) {
+    const y = clientY / Math.max(1, window.innerHeight);
+    if (y < 0.25) return 'top';
+    if (y > 0.75) return 'bottom';
+  }
+  const pageWidth = Math.max(1, windowWidth - window.innerWidth);
+  const intoPage = clientX > window.innerWidth ? clientX - window.innerWidth : clientX < 0 ? pageWidth + clientX : pageWidth;
+  return intoPage < pageWidth / 2 ? 'left' : 'right';
+}
 
 function findFolder(node: BookmarkNode, id: string): BookmarkNode | null {
   if (node.id === id) return node.url ? null : node;
@@ -45,6 +65,60 @@ export function App() {
   // Vivaldi のパネルなど HTML5 DnD が始まらない環境向けの代替
   useEffect(() => installPointerDrag(), []);
 
+  // タブ・お気に入り・ブックマークをパネルの外（いま見ているページの上）で離すと、表示中のタブと分割表示にする
+  const [splitError, setSplitError] = useState<string | null>(null);
+  // ページの上にドラッグしているあいだ、どちら側に入るかを見せる
+  const [splitHint, setSplitHint] = useState<SplitSide | null>(null);
+  const winWidth = useRef(0);
+  useEffect(() => {
+    if (windowId === undefined) return;
+    const measure = () => void chrome.windows.get(windowId).then((w) => (winWidth.current = w.width ?? 0));
+    measure();
+    // 上下に割れるのは Vivaldi だけ。Chrome では最初から左右の案内だけにする
+    void chrome.tabs.query({ active: true, windowId }).then(([t]) => (t?.id !== undefined ? probeVivaldiTiling(t.id) : undefined));
+    window.addEventListener('resize', measure);
+    setOutsideHoverHandler((payload, e) => {
+      if (!e || (payload.kind === 'bookmark' && !payload.url)) return setSplitHint(null);
+      setSplitHint(dropSide(e.clientX, e.clientY, winWidth.current));
+    });
+    return () => {
+      window.removeEventListener('resize', measure);
+      setOutsideHoverHandler(null);
+    };
+  }, [windowId]);
+  useEffect(() => {
+    if (windowId === undefined) return;
+    setOutsideDropHandler((payload, e) => {
+      void (async () => {
+        try {
+          // 先に「いま見ているタブ」を押さえる（お気に入りを開くとアクティブが移るため）
+          const [[viewing], win] = await Promise.all([chrome.tabs.query({ active: true, windowId }), chrome.windows.get(windowId)]);
+          if (viewing?.id === undefined) return;
+          let dragId: number;
+          if (payload.kind === 'tab') {
+            dragId = payload.tabId;
+          } else if (!payload.url) {
+            return; // フォルダ
+          } else if (favIndex.has(normalizeUrl(payload.url))) {
+            // お気に入り（またはお気に入りと同じ URL のブックマーク）は、対応タブがあればそれを、なければ開いて使う
+            const favId = favIndex.get(normalizeUrl(payload.url))!;
+            dragId = (await send({ type: 'fav:open', bookmarkId: favId, windowId })).tabId;
+          } else {
+            const created = await chrome.tabs.create({ url: payload.url, windowId, active: false });
+            if (created.id === undefined) return;
+            dragId = created.id;
+          }
+          if (dragId < 0 || dragId === viewing.id) return;
+          await splitTabs(dragId, viewing.id, dropSide(e.clientX, e.clientY, win.width ?? 0));
+          setSplitError(null);
+        } catch (err) {
+          setSplitError(err instanceof Error ? err.message : 'Could not split these tabs');
+        }
+      })();
+    });
+    return () => setOutsideDropHandler(null);
+  }, [windowId, favIndex]);
+
 
   useEffect(() => {
     void getCollapsedSections().then((ids) => setCollapsed(new Set(ids)));
@@ -71,6 +145,11 @@ export function App() {
     <div class="app">
       <SearchBox value={query} onChange={setQuery} inputRef={searchRef} />
       <main class="scroll">
+        {splitError && (
+          <div class="empty-note split-error" role="status" onClick={() => setSplitError(null)}>
+            {splitError}
+          </div>
+        )}
         {!root || !favFolders ? null : searching ? (
           <SearchResults query={query} favoritesFolders={favFolders} favIndex={favIndex} windowId={windowId} />
         ) : (
@@ -107,6 +186,18 @@ export function App() {
           </>
         )}
       </main>
+      {splitHint && (
+        <div class="split-hint" role="status">
+          <div class="split-hint-card">
+            <div class={`split-hint-pic ${splitHint}`}>
+              <span />
+              <span />
+            </div>
+            <div class="split-hint-title">Release to split</div>
+            <div class="split-hint-sub">{splitHint === 'top' || splitHint === 'bottom' ? `Opens at the ${splitHint}` : `Opens on the ${splitHint}`}</div>
+          </div>
+        </div>
+      )}
       <ContextMenuHost />
     </div>
   );

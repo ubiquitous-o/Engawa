@@ -32,6 +32,41 @@ export function currentDrag(): DragPayload | null {
   return current;
 }
 
+/**
+ * サイドパネルの外（＝いま表示しているページの上）で離したときの受け口。
+ * ポインタはパネルの外に出ても、押したままならパネルに届き続ける（座標がビューポートの外になる）。
+ */
+type OutsideDropHandler = (payload: DragPayload, e: PointerEvent) => void;
+let outsideDrop: OutsideDropHandler | null = null;
+
+export function setOutsideDropHandler(fn: OutsideDropHandler | null): void {
+  outsideDrop = fn;
+}
+
+/** ドラッグ中、ポインタがパネルの外にあるあいだ位置を知らせる。中へ戻る・終わると null。 */
+type OutsideHoverHandler = (payload: DragPayload, e: PointerEvent | null) => void;
+let outsideHover: OutsideHoverHandler | null = null;
+let hoveringOutside = false;
+
+export function setOutsideHoverHandler(fn: OutsideHoverHandler | null): void {
+  outsideHover = fn;
+}
+
+function notifyHover(e: PointerEvent | null): void {
+  if (!e && !hoveringOutside) return;
+  hoveringOutside = !!e;
+  if (current && outsideHover) outsideHover(current, e);
+}
+
+function isOutside(e: PointerEvent): boolean {
+  return e.clientX < 0 || e.clientY < 0 || e.clientX > window.innerWidth || e.clientY > window.innerHeight;
+}
+
+/** ブックマークにしてよい URL か。タブは何でもドラッグできるが、ブックマーク化は http(s) だけ。 */
+export function isWebUrl(url: string | undefined): boolean {
+  return /^https?:/.test(url ?? '');
+}
+
 export type DropPosition = 'before' | 'after' | 'into';
 
 /** 行の縦位置から挿入位置を決める。フォルダなら中央は「中へ」。 */
@@ -135,8 +170,20 @@ export function installPointerDrag(root: Document = document): () => void {
     raf = 0;
     if (!a) return;
     a.ghost.remove();
-    const target = drop ? root.elementFromPoint(e.clientX, e.clientY) : null;
-    if (target) {
+    root.documentElement.classList.remove('drag-outside');
+    notifyHover(null);
+    try {
+      a.el.releasePointerCapture(e.pointerId);
+    } catch {
+      // 既に外れている
+    }
+    const payload = current;
+    const outside = drop && isOutside(e);
+    const target = drop && !outside ? root.elementFromPoint(e.clientX, e.clientY) : null;
+    if (outside) {
+      if (a.over) a.over.dispatchEvent(synth('dragleave', e, a.dt, null));
+      if (payload && outsideDrop) outsideDrop(payload, e);
+    } else if (target) {
       // 直前の dragover を受けた要素と違えば、まずそちらへ移す
       if (target !== a.over) {
         if (a.over) a.over.dispatchEvent(synth('dragleave', e, a.dt, target));
@@ -165,6 +212,8 @@ export function installPointerDrag(root: Document = document): () => void {
       if (!raf) raf = requestAnimationFrame(autoScroll);
       const g = active.ghost;
       g.style.transform = `translate(${e.clientX - Number(g.dataset.offsetX)}px, ${e.clientY - Number(g.dataset.offsetY)}px)`;
+      root.documentElement.classList.toggle('drag-outside', isOutside(e));
+      notifyHover(isOutside(e) ? e : null);
       const target = root.elementFromPoint(e.clientX, e.clientY);
       if (target !== active.over) {
         if (active.over) active.over.dispatchEvent(synth('dragleave', e, active.dt, target));
@@ -183,6 +232,12 @@ export function installPointerDrag(root: Document = document): () => void {
     el.dispatchEvent(start);
     if (start.defaultPrevented) return;
     active = { el, dt, over: null, ghost: makeGhost(el, e.clientX, e.clientY) };
+    // パネルの外へ出てもポインタイベントを受け続ける
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {
+      // 合成イベントなどでキャプチャできない場合は無視
+    }
   };
   // 本物（isTrusted）の dragstart はここで止め、コンポーネントにも届けない。
   // ネイティブのドラッグが始まらないので pointer イベントが続き、上の合成が動く。

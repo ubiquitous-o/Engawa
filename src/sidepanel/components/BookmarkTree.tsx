@@ -2,7 +2,7 @@ import type { JSX } from 'preact';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { getExpandedFolders, setExpandedFolders, setFavoritesFolderIds } from '@shared/storage';
 import { hostOf } from '@shared/url';
-import { currentDrag, dropPositionFor, endDrag, startDrag, type DropPosition } from '../lib/dnd';
+import { currentDrag, dropPositionFor, endDrag, isWebUrl, startDrag, type DropPosition } from '../lib/dnd';
 import { openContextMenu, type MenuItem } from '../lib/contextMenu';
 import { type BookmarkNode } from '../lib/hooks';
 import { addToFavoritesItems } from '../lib/favMenu';
@@ -120,6 +120,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     setDrop(null);
     setDragging(null);
     if (!payload || !d || d.id !== target.id) return;
+    if (payload.kind === 'tab' && !isWebUrl(payload.url)) return; // 拡張機能ページなどはブックマークにしない
     if (payload.kind === 'tab') {
       if (d.pos === 'into') await chrome.bookmarks.create({ parentId: target.id, title: payload.title, url: payload.url });
       else {
@@ -300,6 +301,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     setDrop(null);
     const payload = currentDrag();
     if (!payload || !dropRoot) return;
+    if (payload.kind === 'tab' && !isWebUrl(payload.url)) return;
     if (payload.kind === 'tab') {
       await chrome.bookmarks.create({ parentId: dropRoot.id, title: payload.title, url: payload.url });
     } else {

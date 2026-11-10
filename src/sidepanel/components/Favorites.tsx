@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { send } from '@shared/messages';
 import type { FavoritesState } from '@shared/types';
-import { currentDrag, endDrag, startDrag } from '../lib/dnd';
+import { currentDrag, endDrag, isWebUrl, startDrag } from '../lib/dnd';
 import { openContextMenu } from '../lib/contextMenu';
 import { useBookmarkChildren, useChromeEvents } from '../lib/hooks';
 import { addToFavorites } from '../lib/open';
@@ -61,6 +61,7 @@ export function Favorites({ folderId, windowId }: Props) {
     setDragId(null);
     if (!payload) return;
     if (payload.kind === 'tab') {
+      if (!isWebUrl(payload.url)) return; // 拡張機能ページなどはブックマークにしない
       await addToFavorites(folderId, { title: payload.title, url: payload.url }, index);
     } else if (payload.url) {
       if (payload.parentId === folderId) {

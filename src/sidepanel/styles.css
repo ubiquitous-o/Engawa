@@ -409,6 +409,71 @@ input {
   box-shadow: inset 0 0 0 2px var(--accent);
   background: var(--accent-soft);
 }
+/* 分割表示に入っているタブは左に細い帯を出す */
+.row.in-split {
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+/* ドラッグがパネルの外（ページの上）に出ているあいだ、パネル全体に「離せば分割」を出す。
+   パネルからページの上には描けないので、案内はパネル側に置く */
+.split-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: color-mix(in srgb, var(--bg-solid) 78%, transparent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+  animation: pop var(--t);
+}
+.split-hint-card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.split-hint-pic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 96px;
+  height: 64px;
+  padding: 5px;
+  border-radius: 10px;
+  border: 2px solid var(--fg-faint);
+}
+.split-hint-pic span {
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--fg-faint) 35%, transparent);
+  transition: background var(--t);
+}
+/* 上下のときはコマを縦に積む */
+.split-hint-pic.top,
+.split-hint-pic.bottom {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.split-hint-pic.left span:first-child,
+.split-hint-pic.top span:first-child,
+.split-hint-pic.bottom span:last-child,
+.split-hint-pic.right span:last-child {
+  background: var(--accent);
+}
+.split-hint-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.split-hint-sub {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.split-error {
+  color: #dc2626;
+  cursor: pointer;
+}
 .row .fav {
   width: 16px;
   height: 16px;
