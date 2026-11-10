@@ -4,6 +4,7 @@ import { applyTheme } from '@shared/theme';
 import { send } from '@shared/messages';
 import { normalizeUrl } from '@shared/url';
 import { installPointerDrag, setOutsideDropHandler, setOutsideHoverHandler } from './lib/dnd';
+import { NOTICE_EVENT } from './lib/pip';
 import { probeVivaldiTiling, splitTabs, verticalSplitPossible, type SplitSide } from './lib/split';
 import { installKeyboard } from './lib/keyboard';
 import { favoritesFolderTitle } from './lib/favMenu';
@@ -86,6 +87,12 @@ export function App() {
       setOutsideHoverHandler(null);
     };
   }, [windowId]);
+  // Meet の小窓が開けなかったときなどの一言も、同じ場所に出す
+  useEffect(() => {
+    const onNotice = (e: Event) => setSplitError(String((e as CustomEvent).detail));
+    window.addEventListener(NOTICE_EVENT, onNotice);
+    return () => window.removeEventListener(NOTICE_EVENT, onNotice);
+  }, []);
   useEffect(() => {
     if (windowId === undefined) return;
     setOutsideDropHandler((payload, e) => {

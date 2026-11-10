@@ -1,5 +1,6 @@
 import { respond, respondError, type Request, type ResponseMap } from '@shared/messages';
 import { getSettings, getToken, onSettingsChanged, onTokenChanged } from '@shared/storage';
+import { closeMeetPip, isMeetUrl } from '@shared/pip';
 import * as favorites from './favorites';
 import { ALARM_NAME, registerGitHubListeners, scheduleAlarm, syncPRs, testToken } from './github';
 
@@ -17,6 +18,15 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.runtime.onStartup.addListener(() => {
   void bootstrap();
+});
+
+// ---- Meet のタブに戻ったら小窓を閉じる（Chrome の自動 Picture-in-Picture と同じ動き） ----
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  void chrome.tabs
+    .get(tabId)
+    .then((tab) => (isMeetUrl(tab.url) ? closeMeetPip(tabId) : undefined))
+    .catch(() => undefined);
 });
 
 // ---- アラーム ----

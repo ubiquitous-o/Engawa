@@ -5,6 +5,7 @@ import { endDrag, startDrag } from '../lib/dnd';
 import { openContextMenu } from '../lib/contextMenu';
 import { addToFavoritesItems } from '../lib/favMenu';
 import { useChromeEvents, type BookmarkNode } from '../lib/hooks';
+import { leaveViaPip } from '../lib/pip';
 import { getVivaldiTiles, onVivaldiTilesChanged, pruneVivaldiTiles, splitKeyOf, unsplitTab, type VivaldiTiles } from '../lib/split';
 import { Favicon } from './Favicon';
 import { Audio, Chevron, Close, Muted, Pin } from './Icons';
@@ -92,7 +93,9 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
   }
 
   const activate = (tab: chrome.tabs.Tab) => {
-    if (tab.id !== undefined) void chrome.tabs.update(tab.id, { active: true });
+    const id = tab.id;
+    if (id === undefined) return;
+    void leaveViaPip(windowId, id).then(() => chrome.tabs.update(id, { active: true }));
   };
   const close = (tab: chrome.tabs.Tab) => {
     if (tab.id !== undefined) void chrome.tabs.remove(tab.id);

@@ -1,5 +1,6 @@
 import { send } from '@shared/messages';
 import { normalizeUrl, sameUrl } from '@shared/url';
+import { leaveViaPip } from './pip';
 
 export interface OpenOptions {
   /** バックグラウンドの新しいタブで開く（中クリック・修飾キー） */
@@ -17,6 +18,8 @@ export function wantsBackground(e: MouseEvent): boolean {
 
 /** URL を開く。既定では新しいタブで開く。 */
 export async function openUrl(url: string, opts: OpenOptions = {}): Promise<void> {
+  // 表示中のタブから離れる開き方なら、Meet の小窓を先に出す
+  if (!opts.background && !opts.currentTab) await leaveViaPip(opts.windowId);
   const windowId = opts.windowId ?? (await chrome.windows.getCurrent()).id;
   if (opts.reuse) {
     const tabs = await chrome.tabs.query({ windowId });
@@ -52,6 +55,7 @@ export function buildFavoriteIndex(items: chrome.bookmarks.BookmarkTreeNode[]): 
 export async function openBookmark(url: string, favorites: FavoriteIndex, opts: OpenOptions = {}): Promise<void> {
   const favId = favorites.get(normalizeUrl(url));
   if (favId && !opts.background && !opts.currentTab) {
+    await leaveViaPip(opts.windowId);
     await send({ type: 'fav:open', bookmarkId: favId, windowId: opts.windowId });
     return;
   }

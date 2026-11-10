@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 import { send } from '@shared/messages';
 import type { FavoritesState } from '@shared/types';
 import { currentDrag, endDrag, isWebUrl, startDrag } from '../lib/dnd';
+import { leaveViaPip } from '../lib/pip';
 import { openContextMenu } from '../lib/contextMenu';
 import { useBookmarkChildren, useChromeEvents } from '../lib/hooks';
 import { addToFavorites } from '../lib/open';
@@ -39,6 +40,7 @@ export function Favorites({ folderId, windowId }: Props) {
 
   const open = async (id: string) => {
     try {
+      await leaveViaPip(windowId);
       await send({ type: 'fav:open', bookmarkId: id, windowId });
     } finally {
       refreshState();

@@ -72,6 +72,16 @@ Tabs that belong to a favorite do not appear in the "Tabs" list, just like pinne
 
 The tab list overlaps with Chrome's native vertical tabs, so it can be turned off in the options.
 
+## Automatic picture-in-picture for Google Meet
+
+Chrome pops Meet out into a picture-in-picture window when you leave its tab and closes it when you come back. Vivaldi never marks a background tab as hidden, so that never fires. Engawa fills the gap.
+
+- While you are on Meet, clicking a tab, favorite or bookmark in Engawa opens Meet's picture-in-picture window just before switching
+- Returning to the Meet tab closes it (however you return)
+- Opening the window needs a real user action, so switching with Vivaldi's own tab bar or shortcuts does not open it
+- This uses the `scripting` permission and access to `meet.google.com`; no other site is touched
+- After updating the extension, reload any open Meet tab once
+
 ## Appearance
 
 The "Background" card in the options page builds an Arc-style background.

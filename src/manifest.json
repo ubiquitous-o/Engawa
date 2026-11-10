@@ -45,12 +45,26 @@
     "storage",
     "alarms",
     "notifications",
-    "favicon"
+    "favicon",
+    "scripting"
   ],
   "host_permissions": [
-    "https://api.github.com/*"
+    "https://api.github.com/*",
+    "https://meet.google.com/*"
   ],
   "optional_host_permissions": [
     "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://meet.google.com/*"
+      ],
+      "js": [
+        "meet-pip.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
   ]
 }
