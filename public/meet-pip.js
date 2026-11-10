@@ -19,6 +19,49 @@
 
   const docPip = () => (window.documentPictureInPicture ? window.documentPictureInPicture.window : null);
 
+  // 小窓の大きさを覚える。
+  // Meet は開くたびに決まった（小さい）大きさを指定するので、開く命令を横取りして、
+  // 最後に使っていた大きさに差し替える。大きさは利用者が変えるたびに Meet のページの localStorage に残す。
+  // 手で開いたときも、Engawa が開いたときも同じように効く。
+  // 位置はページからは指定できないので、拡張のバックグラウンド（src/background/pipWindow.ts）が受け持つ。
+  // （ブラウザ自身の「前回の位置で開く」記憶に乗る方法も試したが、Vivaldi では効かなかった）
+  const SIZE_KEY = 'engawa:pipSize';
+  const readSize = () => {
+    try {
+      const v = JSON.parse(localStorage.getItem(SIZE_KEY) || 'null');
+      return v && v.w >= 120 && v.h >= 120 && v.w <= 4000 && v.h <= 4000 ? v : null;
+    } catch (_) {
+      return null;
+    }
+  };
+  try {
+    const proto = DocumentPictureInPicture.prototype;
+    const originalRequest = proto.requestWindow;
+    proto.requestWindow = async function (options) {
+      const opts = { ...(options || {}) };
+      const size = readSize();
+      if (size) {
+        opts.width = size.w;
+        opts.height = size.h;
+        // これが付いていると、ブラウザは大きさと位置を毎回初期値に戻す
+        delete opts.preferInitialWindowPlacement;
+      }
+      const win = await originalRequest.call(this, opts);
+      win.addEventListener('resize', () => {
+        try {
+          if (win.innerWidth > 0 && win.innerHeight > 0) {
+            localStorage.setItem(SIZE_KEY, JSON.stringify({ w: win.innerWidth, h: win.innerHeight }));
+          }
+        } catch (_) {
+          // 保存できなくても小窓は開く
+        }
+      });
+      return win;
+    };
+  } catch (_) {
+    // Document Picture-in-Picture が無い環境では何もしない
+  }
+
   // Meet が依頼を受け付けていないときの代わり: いちばん大きく映っている映像 1 枚を小窓にする
   const biggestVideo = () => {
     let best = null;

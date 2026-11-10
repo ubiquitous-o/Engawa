@@ -2,6 +2,7 @@ import { respond, respondError, type Request, type ResponseMap } from '@shared/m
 import { getSettings, getToken, onSettingsChanged, onTokenChanged } from '@shared/storage';
 import { closeMeetPip, isMeetUrl } from '@shared/pip';
 import * as favorites from './favorites';
+import { registerPipWindowListeners } from './pipWindow';
 import { ALARM_NAME, registerGitHubListeners, scheduleAlarm, syncPRs, testToken } from './github';
 
 // ---- 起動時の初期化 ----
@@ -28,6 +29,10 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
     .then((tab) => (isMeetUrl(tab.url) ? closeMeetPip(tabId) : undefined))
     .catch(() => undefined);
 });
+
+// ---- Meet の小窓の位置を覚える ----
+
+registerPipWindowListeners();
 
 // ---- アラーム ----
 

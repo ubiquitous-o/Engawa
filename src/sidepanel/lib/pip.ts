@@ -1,11 +1,6 @@
 import { meetPipStatus, openMeetPipBeforeLeaving } from '@shared/pip';
 
-/** パネル上部に一言出すための合図。App が受け取る。 */
-export const NOTICE_EVENT = 'engawa:notice';
-
-function notice(text: string): void {
-  window.dispatchEvent(new CustomEvent(NOTICE_EVENT, { detail: text }));
-}
+import { notice } from './notice';
 
 /**
  * タブを切り替える・新しく開く操作の最初に呼ぶ。いま Meet を見ていれば小窓を開き始めてから先へ進む。
