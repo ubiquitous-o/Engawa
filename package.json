@@ -1,6 +1,6 @@
 {
   "name": "engawa",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "description": "Engawa（縁側）: お気に入り・ブックマーク・GitHub PR・タブを Chrome のサイドパネルに",
