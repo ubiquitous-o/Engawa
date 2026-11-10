@@ -6,6 +6,7 @@ import { currentDrag, dropPositionFor, endDrag, isWebUrl, startDrag, type DropPo
 import { openContextMenu, type MenuItem } from '../lib/contextMenu';
 import { type BookmarkNode } from '../lib/hooks';
 import { addToFavoritesItems } from '../lib/favMenu';
+import { NEW_FOLDER_EVENT, notice } from '../lib/notice';
 import { openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
 import { Favicon } from './Favicon';
 import { Chevron, Star } from './Icons';
@@ -34,6 +35,11 @@ function indexTree(root: BookmarkNode): Map<string, BookmarkNode> {
   };
   walk(root);
   return map;
+}
+
+/** Vivaldi はブックマークツリーの中にゴミ箱を持っていて、ノードに trash: true を付けている */
+function isTrash(node: BookmarkNode): boolean {
+  return (node as { trash?: boolean }).trash === true;
 }
 
 function isDescendant(map: Map<string, BookmarkNode>, id: string, ancestorId: string): boolean {
@@ -141,10 +147,56 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     }
   };
 
+  // セクション見出しの「＋」: いま一覧のトップになっているフォルダ（絞っていなければブックマークバー）に作る
+  useEffect(() => {
+    const onNew = () => {
+      if (!dropRoot) return;
+      void chrome.bookmarks
+        .create({ parentId: dropRoot.id, title: 'New folder', index: 0 })
+        .then((created) => setRenaming(created.id))
+        .catch((e: unknown) => notice(`Could not create a folder (${e instanceof Error ? e.message : String(e)})`));
+    };
+    window.addEventListener(NEW_FOLDER_EVENT, onNew);
+    return () => window.removeEventListener(NEW_FOLDER_EVENT, onNew);
+  }, [dropRoot?.id]);
+
+  /** 失敗を握りつぶさず、理由をパネルに出す */
+  const guarded = (what: string, fn: () => Promise<unknown>) => () =>
+    fn().catch((e: unknown) => notice(`Could not ${what} (${e instanceof Error ? e.message : String(e)})`));
+
+  /**
+   * ブックマークやフォルダを消す。
+   * Vivaldi は、スピードダイヤルに使っているフォルダを拡張が消そうとすると、何もせずに成功を返す
+   * （VB-10596）。消えていなければ、Vivaldi のゴミ箱へ動かす。動かすのは止められていない。
+   */
+  const deleteNode = async (node: BookmarkNode) => {
+    await (node.url ? chrome.bookmarks.remove(node.id) : chrome.bookmarks.removeTree(node.id));
+    const [still] = await chrome.bookmarks.get(node.id).catch(() => [] as BookmarkNode[]);
+    if (!still || still.parentId !== node.parentId) return; // 消えた、またはゴミ箱へ移った
+    const trash = root.children?.find(isTrash);
+    if (!trash) throw new Error('the browser ignored the request');
+    await chrome.bookmarks.move(node.id, { parentId: trash.id, index: 0 });
+  };
+
   const menuFor = (node: BookmarkNode): MenuItem[] => {
     const isFolder = !node.url;
     const isRoot = !node.parentId || node.parentId === '0';
     const items: MenuItem[] = [];
+    // Vivaldi のゴミ箱。ブックマークツリーの中にフォルダとして見えるが、消したり名前を変えたりはできない
+    if (isTrash(node)) {
+      const n = node.children?.length ?? 0;
+      return [
+        {
+          label: 'Empty trash',
+          danger: true,
+          disabled: n === 0,
+          confirm: `Delete ${n} items for good?`,
+          onSelect: guarded('empty the trash', async () => {
+            for (const c of node.children ?? []) await (c.url ? chrome.bookmarks.remove(c.id) : chrome.bookmarks.removeTree(c.id));
+          }),
+        },
+      ];
+    }
     if (!isFolder) {
       items.push(
         { label: 'Open', onSelect: () => openBookmark(node.url!, favIndex, { windowId }) },
@@ -190,7 +242,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
         label: 'Delete',
         danger: true,
         confirm: isFolder && node.children?.length ? `Delete this folder and its ${node.children.length} items?` : 'Delete this bookmark?',
-        onSelect: () => (isFolder ? chrome.bookmarks.removeTree(node.id) : chrome.bookmarks.remove(node.id)),
+        onSelect: guarded('delete this', () => deleteNode(node)),
       });
     }
     return items;
@@ -202,7 +254,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     const isRoot = !node.parentId || node.parentId === '0';
     const indent = 6 + depth * 14;
     const dropCls = drop?.id === node.id ? `drop-${drop.pos}` : '';
-    const title = node.title || (isFolder ? '(untitled folder)' : hostOf(node.url));
+    const title = isTrash(node) ? 'Trash' : node.title || (isFolder ? '(untitled folder)' : hostOf(node.url));
 
     const onClick = (e: MouseEvent) => {
       if (renaming === node.id) return;

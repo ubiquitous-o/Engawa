@@ -59,6 +59,8 @@ To release, bump `version` in `package.json` and push a `v`-prefixed tag; GitHub
 | Drag a tab or bookmark onto favorites | Add to that folder or reorder. With several folders, right-click "Add to favorites" lists one entry per folder |
 | Drag a tab onto the bookmark tree | Drop on a folder to add inside it, between rows to add next to them, or on the drop zone below to append to the bookmarks bar |
 | Drag a bookmark | Reorder or move into a folder |
+| "+" in the Bookmarks header | Create a new folder |
+| Right-click a bookmark or folder → Delete | Delete it. In Vivaldi it goes to the Trash (Vivaldi ignores extension deletes of Speed Dial folders, so those are moved to the Trash instead). Right-click the Trash → "Empty trash" |
 | Drag a tab, favorite or bookmark out of the panel onto the page | Puts it next to the tab you are viewing and shows both in a split view. Favorites and bookmarks are opened first if they have no tab. Release over the left or right half of the page to choose the side; in Vivaldi, releasing near the top or bottom stacks them vertically (Chrome's split view is side by side only). While dragging, the panel shows where it will land. Right-click → "Unsplit" to undo. Uses Vivaldi's own tab tiling in Vivaldi, and `tabs.createSplit` (Chrome 155+) in Chrome |
 | Click a bookmark | Opens in a new tab. If the URL is a favorite, no new tab is added: it opens as that favorite's tab (the tile lights up). Middle-click / Cmd+click opens in the background. Right-click offers "Open in current tab" |
 | Double-click a bookmark / right-click → Rename | Rename inline |
@@ -90,6 +92,7 @@ Chrome pops Meet out into a picture-in-picture window when you leave its tab and
 
 - While you are on Meet, clicking a tab, favorite or bookmark in Engawa opens Meet's picture-in-picture window just before switching
 - Returning to the Meet tab closes it (however you return)
+- The window's size is remembered and reused the next time it opens (Meet otherwise resets it to its small default). Its position is remembered too: right after it opens, the extension moves the window back to where it was (a page cannot set the position itself)
 - Opening the window needs a real user action, so switching with Vivaldi's own tab bar or shortcuts does not open it
 - This uses the `scripting` permission and access to `meet.google.com`; no other site is touched
 - After updating the extension, reload any open Meet tab once

@@ -4,7 +4,7 @@ import { applyTheme } from '@shared/theme';
 import { send } from '@shared/messages';
 import { normalizeUrl } from '@shared/url';
 import { installPointerDrag, setOutsideDropHandler, setOutsideHoverHandler } from './lib/dnd';
-import { NOTICE_EVENT } from './lib/pip';
+import { NEW_FOLDER_EVENT, NOTICE_EVENT } from './lib/notice';
 import { probeVivaldiTiling, splitTabs, verticalSplitPossible, type SplitSide } from './lib/split';
 import { installKeyboard } from './lib/keyboard';
 import { favoritesFolderTitle } from './lib/favMenu';
@@ -14,7 +14,7 @@ import { BookmarkTree } from './components/BookmarkTree';
 import { ContextMenuHost } from './components/ContextMenu';
 import { Favorites } from './components/Favorites';
 import { FolderPicker } from './components/FolderPicker';
-import { Gear } from './components/Icons';
+import { Gear, Plus } from './components/Icons';
 import { NowPlaying } from './components/NowPlaying';
 import { PRSection } from './components/PRSection';
 import { SearchBox } from './components/SearchBox';
@@ -187,7 +187,24 @@ export function App() {
             {settings.showPR && (
               <PRSection windowId={windowId} collapsed={collapsed.has('pr')} onToggle={() => toggleSection('pr')} />
             )}
-            <Section title="Bookmarks" collapsed={collapsed.has('bookmarks')} onToggle={() => toggleSection('bookmarks')}>
+            <Section
+              title="Bookmarks"
+              collapsed={collapsed.has('bookmarks')}
+              onToggle={() => toggleSection('bookmarks')}
+              actions={
+                <button
+                  class="icon-btn"
+                  title="New folder"
+                  onClick={() => {
+                    // 畳んでいたら開いてから作る（作ったフォルダの名前入力が見えるように）
+                    if (collapsed.has('bookmarks')) toggleSection('bookmarks');
+                    window.dispatchEvent(new CustomEvent(NEW_FOLDER_EVENT));
+                  }}
+                >
+                  <Plus />
+                </button>
+              }
+            >
               <BookmarkTree root={root} treeRoot={treeRoot ?? root} favoritesFolders={favFolders} favIndex={favIndex} windowId={windowId} />
             </Section>
             {settings.showTabs && (
