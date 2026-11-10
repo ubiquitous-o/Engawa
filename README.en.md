@@ -113,6 +113,8 @@ The same file carries two more tweaks.
 - Even 7px margins on all four sides of the page (Vivaldi's unified design is tighter on the left and top)
 - The address field that pops up when the address bar is hidden is centred on the page area instead of the whole window: beside the side panel when it is open, across the window when it is not
 
+[engawa-hide-titlebar.css](vivaldi-custom-css/engawa-hide-titlebar.css) in the same folder is a separate tweak: with Vivaldi's auto-hide UI, it stops the title bar strip from sliding in at the top edge. The macOS window buttons cannot be removed, so they still appear on their own when you reach the top edge. Drag the window by an invisible 14px strip along the top. Remove just this file if you do not want it
+
 ## Chrome limitations
 
 - **The tab strip and the address bar cannot be hidden by an extension.** Chrome's native vertical tabs feature removes the horizontal tab strip, nothing more. Vivaldi can hide both in its settings
