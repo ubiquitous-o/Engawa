@@ -30,6 +30,17 @@
 }
 
 /*
+ * サイドパネルの上下の位置をページに揃える。
+ * 上の規則でページを 2px 下げたぶん、パネルの上端がページより 2px 高くなる。
+ * 下は Vivaldi の元の配置でパネルのほうが 4〜5px 余白が広い（実測: パネル 12 / ページ 7）。
+ * パネルの上に 2px 足し、下の余白を 6px から 2px に減らして、上下ともページと同じ高さにする。
+ */
+#browser.unified-ui #panels-container {
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+/*
  * アドレスバーを非表示にしているときに出る「浮いた入力欄」（新しいタブを開いたときなど）を、
  * ウィンドウ全体ではなくページの領域の中央に置く。
  * Vivaldi の元の規則は position: absolute / margin: 0 20% / width: 60% で、基準がウィンドウ幅。

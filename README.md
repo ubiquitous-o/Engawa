@@ -74,7 +74,7 @@ npm run build
 
 ## Spotify の再生中表示（スリットスキャン）
 
-Spotify で再生中の曲のジャケットを、Tabs の一番下から操作ボタンの上までの空きに、縦のスリットスキャンで出す。再生位置にあたる横 1 行を縦に引き伸ばして余った高さを埋め、曲が進むとその帯が下から上へ動く（[StaaaaandBy](https://github.com/ubiquitous-o/StaaaaandBy) と同じ描き方）。パネルの一番下には、曲名と「前の曲・再生/停止・次の曲」のボタンが出る。
+Spotify で再生中の曲のジャケットを、Tabs の一番下から操作ボタンの上までの空きに、縦のスリットスキャンで出す。再生位置にあたる横 1 行を縦に引き伸ばして余った高さを埋め、曲が進むとジャケットが下から上へ上がってくる（[StaaaaandBy](https://github.com/ubiquitous-o/StaaaaandBy) と同じ描き方）。一覧が長くて空きが横長になったときは横向きになり、ジャケットが右から左へ動く。収まらない曲名は 2 秒止まってから流れる。パネルの一番下には、曲名と「前の曲・再生/停止・次の曲」のボタンが出る。
 
 1. [developer.spotify.com](https://developer.spotify.com/dashboard) で自分の Spotify アプリを作る（Web API）
 2. Engawa の設定画面の Spotify カードに出ている Redirect URI（`https://<拡張ID>.chromiumapp.org/spotify`）を、そのアプリの Redirect URIs に登録する
@@ -82,7 +82,7 @@ Spotify で再生中の曲のジャケットを、Tabs の一番下から操作�
 
 - サインインは Authorization Code + PKCE で、クライアントシークレットは使わない。トークンと Client ID は端末内（storage.local）だけに置き、`accounts.spotify.com` と `api.spotify.com` にしか送らない
 - どの端末で再生していても、アカウントの再生状態を 2 秒ごとに取りに行く（パネルが見えているあいだだけ）。ボタンは再生中の端末に対して効く。操作には Premium が必要
-- 設定の「Show now playing」でオフにできる
+- 設定の「Show now playing」でオフに、「Artwork strength」でジャケットの濃さを変えられる
 
 ## Google Meet の自動ピクチャー イン ピクチャー
 
