@@ -17,3 +17,14 @@
   --radius: 20px !important;
   --radiusHalf: 10px !important;
 }
+
+/*
+ * ページの周りの余白を四辺で揃える。
+ * Vivaldi 8.3 の統合デザイン（UI を自動で隠す設定、パネルを閉じた状態）で測ると
+ * 左 5 / 上 5 / 右 6 / 下 7px と不揃いなので、足りない辺に足して 7px にする。
+ * 数字は実測に合わせた足し分（上 右 下 左）。右は 1px 足しても 6px のままだったので 2px にしている。Vivaldi の版や UI の出し方が変わるとずれることがある。
+ */
+#browser.unified-ui #webview-container {
+  box-sizing: border-box;
+  padding: 2px 2px 0 2px;
+}
