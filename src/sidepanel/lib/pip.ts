@@ -15,7 +15,9 @@ export async function leaveViaPip(windowId: number | undefined, goingToTabId?: n
     void meetPipStatus(tabId).then((status) => {
       // 経過はいつもコンソールに残し、パネルに出すのは失敗したときだけ
       console.debug('[engawa] meet pip:', result, status);
-      if (!status.startsWith('open=true')) notice(`Picture-in-picture did not open (${result}; ${status})`);
+      // 一度開いてから閉じた場合（すぐ Meet に戻った、自分で閉じた）は失敗ではない
+      const opened = status.startsWith('open=true') || status.includes('opened-by=');
+      if (!opened) notice(`Picture-in-picture did not open (${result}; ${status})`);
     });
   }, 4000);
 }
