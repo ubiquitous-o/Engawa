@@ -72,6 +72,18 @@ Tabs that belong to a favorite do not appear in the "Tabs" list, just like pinne
 
 The tab list overlaps with Chrome's native vertical tabs, so it can be turned off in the options.
 
+## Spotify now playing (slit-scan)
+
+The album art of whatever is playing on Spotify fills the space between the end of the tab list and the playback buttons as a vertical slit-scan: the row at the playback position is stretched to fill the spare height, and that band travels from bottom to top as the track plays (the same drawing as [StaaaaandBy](https://github.com/ubiquitous-o/StaaaaandBy)). The bottom of the panel shows the title with previous / play-pause / next buttons.
+
+1. Create your own Spotify app at [developer.spotify.com](https://developer.spotify.com/dashboard) (Web API)
+2. Register the redirect URI shown in the Spotify card of Engawa's options (`https://<extension id>.chromiumapp.org/spotify`) in that app
+3. Paste the Client ID into the options and press **Connect**
+
+- Sign-in is Authorization Code + PKCE with no client secret. Tokens and the Client ID stay on this device (storage.local) and are only sent to `accounts.spotify.com` and `api.spotify.com`
+- Playback state is polled every 2 seconds while the panel is visible, whichever device is playing. The buttons act on the playing device and need Premium
+- Turn it off with "Show now playing" in the options
+
 ## Automatic picture-in-picture for Google Meet
 
 Chrome pops Meet out into a picture-in-picture window when you leave its tab and closes it when you come back. Vivaldi never marks a background tab as hidden, so that never fires. Engawa fills the gap.

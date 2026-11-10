@@ -15,6 +15,7 @@ import { ContextMenuHost } from './components/ContextMenu';
 import { Favorites } from './components/Favorites';
 import { FolderPicker } from './components/FolderPicker';
 import { Gear } from './components/Icons';
+import { NowPlaying } from './components/NowPlaying';
 import { PRSection } from './components/PRSection';
 import { SearchBox } from './components/SearchBox';
 import { SearchResults } from './components/SearchResults';
@@ -70,6 +71,8 @@ export function App() {
   const [splitError, setSplitError] = useState<string | null>(null);
   // ページの上にドラッグしているあいだ、どちら側に入るかを見せる
   const [splitHint, setSplitHint] = useState<SplitSide | null>(null);
+  // 再生中のジャケットを描く枠（一覧の末尾）
+  const [artHost, setArtHost] = useState<HTMLElement | null>(null);
   const winWidth = useRef(0);
   useEffect(() => {
     if (windowId === undefined) return;
@@ -192,7 +195,9 @@ export function App() {
             )}
           </>
         )}
+        {settings.showNowPlaying && <div class="now-playing-slot" ref={setArtHost} />}
       </main>
+      {settings.showNowPlaying && <NowPlaying artHost={artHost} />}
       {splitHint && (
         <div class="split-hint" role="status">
           <div class="split-hint-card">

@@ -15,6 +15,7 @@ export function applyTheme(settings: Settings, root: HTMLElement = document.docu
   // グレインは 100 でも目に痛くない程度に抑える
   root.style.setProperty('--grain-opacity', String((clamp(t.grain, 0, 100) / 100) * 0.5));
   root.style.setProperty('--fav-size', `${clamp(settings.favTileSize, FAV_TILE_SIZE.min, FAV_TILE_SIZE.max)}px`);
+  root.style.setProperty('--np-opacity', String(clamp(settings.nowPlayingOpacity, 0, 100) / 100));
   root.dataset.themeMode = t.mode;
   root.dataset.density = settings.density;
 }

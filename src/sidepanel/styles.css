@@ -840,3 +840,126 @@ input {
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
 }
+
+/* ---------- 再生中の曲（Spotify） ---------- */
+/* ジャケットの縦スリットスキャン。一覧の末尾に置いた枠（.now-playing-slot）の中に描く。
+   枠は Tabs の一番下から操作ボタンの上までの空きを埋める。一覧が長くて空きが無いときも、
+   最低限の高さは確保して、下までスクロールすれば見えるようにする */
+.scroll {
+  display: flex;
+  flex-direction: column;
+}
+.scroll > * {
+  flex: none;
+}
+.scroll > .now-playing-slot {
+  position: relative;
+  flex: 1 0 96px;
+  /* 濃さは設定の「Artwork strength」。影ごと薄くするので、枠に掛ける */
+  opacity: var(--np-opacity, 1);
+  /* パネルの中央に置く。一覧の右にはスクロールバー用の溝（10px）が常に確保されているので、
+     左の余白（10px）と釣り合うよう、右は一覧の右余白（2px）を打ち消して溝だけを残す */
+  margin: 10px -2px 4px 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.scroll > .now-playing-slot:empty {
+  display: none;
+}
+/* ジャケットが出ているあいだは、一覧の下の余白をなくして操作ボタンまでつなげる */
+.scroll:has(> .now-playing-slot:not(:empty)) {
+  padding-bottom: 0;
+}
+/* コンパクト表示: 一覧の左余白は 6px、右は溝の 10px。左に 4px 足して両側 10px に揃える */
+:root[data-density="compact"] .scroll > .now-playing-slot {
+  margin: 8px 0 4px 4px;
+}
+.now-playing-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 400ms ease, filter 400ms ease;
+}
+/* 一時停止中はさらに薄く、色も落とす */
+.now-playing-art.paused {
+  opacity: 0.55;
+  filter: saturate(0.5);
+}
+/* パネルの一番下: 曲名と操作ボタン。箱にはせず、パネルの地にそのまま置く */
+.now-playing {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 10px 14px;
+}
+.now-playing-text {
+  flex: 1;
+  min-width: 0;
+}
+/* 1 行の文字。収まらないときだけ流れる（Marquee.tsx） */
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.marquee-track {
+  display: inline-flex;
+  will-change: transform;
+}
+/* 流れているあいだは、右端をぼかして文字が切れて見えないようにする */
+.marquee.scrolling {
+  mask-image: linear-gradient(to right, #000 calc(100% - 14px), transparent);
+}
+.now-playing-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fg);
+}
+.now-playing-artist {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+.now-playing-controls {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.now-playing-controls button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  transition: background var(--t), transform var(--t);
+}
+.now-playing-controls button:hover {
+  background: var(--hover);
+}
+.now-playing-controls button:active {
+  transform: scale(0.92);
+}
+.now-playing-controls button.main {
+  background: var(--fg);
+  color: var(--bg-solid);
+}
+.now-playing-controls button.main:hover {
+  background: var(--fg);
+  opacity: 0.85;
+}
+.now-playing-controls svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+:root[data-density="compact"] .now-playing {
+  padding: 4px 6px 8px 10px;
+}

@@ -10,6 +10,10 @@ export interface Settings {
   showPR: boolean;
   /** 開いているタブセクションを表示する */
   showTabs: boolean;
+  /** パネルの下に Spotify の再生中の曲を表示する（接続しているときだけ出る） */
+  showNowPlaying: boolean;
+  /** 再生中のジャケットの濃さ 0〜100。100 でそのまま、下げるとパネルの地に溶け込む */
+  nowPlayingOpacity: number;
   /** アクセントカラー（CSS color） */
   accentColor: string;
   /** 表示密度。compact は行とタイルを詰めて、狭い幅でも多く見せる */
@@ -68,6 +72,8 @@ export const DEFAULT_SETTINGS: Settings = {
   notifyReviewRequests: true,
   showPR: true,
   showTabs: true,
+  showNowPlaying: true,
+  nowPlayingOpacity: 100,
   accentColor: '#6366f1',
   density: 'comfortable',
   favTileSize: 48,

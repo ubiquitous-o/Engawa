@@ -46,11 +46,15 @@
     "alarms",
     "notifications",
     "favicon",
-    "scripting"
+    "scripting",
+    "identity"
   ],
   "host_permissions": [
     "https://api.github.com/*",
-    "https://meet.google.com/*"
+    "https://meet.google.com/*",
+    "https://accounts.spotify.com/*",
+    "https://api.spotify.com/*",
+    "https://i.scdn.co/*"
   ],
   "optional_host_permissions": [
     "https://*/*"

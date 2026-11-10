@@ -11,6 +11,14 @@ import {
   setToken,
   updateSettings,
 } from '@shared/storage';
+import {
+  connectSpotify,
+  disconnectSpotify,
+  getSpotifyClientId,
+  isSpotifyConnected,
+  setSpotifyClientId,
+  spotifyRedirectUri,
+} from '@shared/spotify';
 import { applyTheme } from '@shared/theme';
 import {
   ACCENT_PRESETS,
@@ -86,6 +94,11 @@ function Options() {
   const [saved, setSaved] = useState(0);
   const [folders, setFolders] = useState<FolderOption[]>([]);
   const [bookmarkRoot, setBookmarkRoot] = useState<string>('');
+  const [spotifyId, setSpotifyId] = useState('');
+  const [spotifyOn, setSpotifyOn] = useState(false);
+  const [spotifyMsg, setSpotifyMsg] = useState<{ cls: string; text: string } | null>(null);
+  // 設定画面を拡張の外でプレビューするときは chrome.identity が無い
+  const redirectUri = typeof chrome.identity?.getRedirectURL === 'function' ? spotifyRedirectUri() : '';
 
   useEffect(() => {
     void getSettings().then((s) => {
@@ -97,6 +110,8 @@ function Options() {
     void getPRSyncState().then(setSync);
     void chrome.bookmarks.getTree().then(([root]) => setFolders(root ? flattenFolders(root) : []));
     void getBookmarkRootId().then((id) => setBookmarkRoot(id ?? ''));
+    void getSpotifyClientId().then(setSpotifyId);
+    void isSpotifyConnected().then(setSpotifyOn);
     return onPRSyncStateChanged(setSync);
   }, []);
 
@@ -104,6 +119,24 @@ function Options() {
   useEffect(() => applyTheme(settings), [settings]);
 
   const flash = () => setSaved(Date.now());
+
+  const connectToSpotify = async () => {
+    setSpotifyMsg({ cls: '', text: 'Waiting for Spotify…' });
+    try {
+      await setSpotifyClientId(spotifyId.trim());
+      await connectSpotify();
+      setSpotifyOn(true);
+      setSpotifyMsg({ cls: 'ok', text: 'Connected' });
+    } catch (e) {
+      setSpotifyMsg({ cls: 'error', text: e instanceof Error ? e.message : 'Could not connect' });
+    }
+  };
+  const disconnectFromSpotify = async () => {
+    await disconnectSpotify();
+    setSpotifyOn(false);
+    setSpotifyMsg(null);
+    flash();
+  };
 
   const saveBookmarkRoot = async (id: string) => {
     setBookmarkRoot(id);
@@ -251,6 +284,64 @@ function Options() {
             <span>{statusText(sync)}</span>
             {sync.lastSyncAt && <span>Last sync {new Date(sync.lastSyncAt).toLocaleString()}</span>}
           </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Spotify</h2>
+        <div class="field">
+          <label for="spotify-id">Client ID</label>
+          <input
+            id="spotify-id"
+            type="text"
+            placeholder="Client ID of your own Spotify app"
+            value={spotifyId}
+            onInput={(e) => setSpotifyId((e.target as HTMLInputElement).value)}
+            autocomplete="off"
+            spellcheck={false}
+          />
+          <div class="hint">
+            Shows what is playing on your Spotify account at the bottom of the panel, on any device. Create an app at{' '}
+            <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">
+              developer.spotify.com
+            </a>{' '}
+            (Web API) and add the redirect URI below to it. No client secret is used. Tokens stay on this device (storage.local).
+          </div>
+        </div>
+        <div class="field">
+          <label for="spotify-redirect">Redirect URI to register</label>
+          <div class="inline">
+            <input id="spotify-redirect" type="text" readOnly value={redirectUri} onFocus={(e) => (e.target as HTMLInputElement).select()} />
+            <button onClick={() => void navigator.clipboard.writeText(redirectUri).then(flash)}>Copy</button>
+          </div>
+        </div>
+        <div class="inline">
+          <button class="primary" onClick={() => void connectToSpotify()} disabled={!spotifyId.trim()}>
+            {spotifyOn ? 'Reconnect' : 'Connect'}
+          </button>
+          {spotifyOn && <button onClick={() => void disconnectFromSpotify()}>Disconnect</button>}
+          <span class="hint" style="font-size:12px;color:var(--fg-muted)">{spotifyOn ? 'Connected' : 'Not connected'}</span>
+        </div>
+        {spotifyMsg && <div class={`status ${spotifyMsg.cls}`}>{spotifyMsg.text}</div>}
+        <Toggle
+          label="Show now playing"
+          hint="Slit-scans the album art below the tabs, with playback buttons at the bottom"
+          checked={settings.showNowPlaying}
+          onChange={(v) => void patch({ showNowPlaying: v })}
+        />
+        <div class="theme-row" style="margin-top:10px">
+          <span>Artwork strength</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={settings.nowPlayingOpacity}
+            onInput={(e) => setSettings((s) => ({ ...s, nowPlayingOpacity: Number((e.target as HTMLInputElement).value) }))}
+            onChange={(e) => void patch({ nowPlayingOpacity: Number((e.target as HTMLInputElement).value) })}
+            aria-label="Artwork strength"
+          />
+          <span class="val">{settings.nowPlayingOpacity}</span>
         </div>
       </div>
 
