@@ -70,7 +70,7 @@ To release, bump `version` in `package.json` and push a `v`-prefixed tag; GitHub
 
 Tabs that belong to a favorite do not appear in the "Tabs" list, just like pinned tabs in Arc. The tile's mark is the only indicator.
 
-The tab list overlaps with Chrome's native vertical tabs, so it can be turned off in the options.
+The tab list overlaps with Chrome's native vertical tabs, so it can be turned off in the options. Tabs showing a page served from this machine (`localhost`, `*.localhost`, `127.x.x.x`, `[::1]`, `0.0.0.0`) get a badge with the port number (`:5173`, for example).
 
 ## Spotify now playing (slit-scan)
 

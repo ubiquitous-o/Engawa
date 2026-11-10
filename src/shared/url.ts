@@ -38,3 +38,21 @@ export function faviconUrl(pageUrl: string | undefined, size = 32): string {
 export function isWebUrl(url: string | undefined): boolean {
   return !!url && /^https?:/i.test(url);
 }
+
+/**
+ * ローカルで動かしている開発サーバーのページなら、目印にする短いラベルを返す。そうでなければ null。
+ * 対象: localhost、*.localhost、127.x.x.x、[::1]、0.0.0.0。
+ * ラベルはポート番号（":5173"）。ポートが既定（80 / 443）で URL に無いときは "local"。
+ */
+export function localLabel(url: string | undefined): string | null {
+  if (!url || !/^https?:/i.test(url)) return null;
+  try {
+    const u = new URL(url);
+    const h = u.hostname.toLowerCase();
+    const local = h === 'localhost' || h.endsWith('.localhost') || /^127(\.\d{1,3}){3}$/.test(h) || h === '[::1]' || h === '0.0.0.0';
+    if (!local) return null;
+    return u.port ? `:${u.port}` : 'local';
+  } catch {
+    return null;
+  }
+}

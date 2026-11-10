@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { send } from '@shared/messages';
-import { hostOf } from '@shared/url';
+import { hostOf, localLabel } from '@shared/url';
 import { endDrag, startDrag } from '../lib/dnd';
 import { openContextMenu } from '../lib/contextMenu';
 import { addToFavoritesItems } from '../lib/favMenu';
@@ -105,6 +105,7 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
     const url = tab.url ?? tab.pendingUrl ?? '';
     const title = tab.title || hostOf(url) || 'New tab';
     const split = splitKeyOf(tab, vivTiles);
+    const local = localLabel(url);
     return (
       <div
         key={tab.id}
@@ -137,6 +138,11 @@ export function TabsSection({ favoritesFolders, windowId, collapsed, onToggle }:
         {tab.pinned && <Pin class="pin" />}
         <Favicon url={url} src={tab.favIconUrl} />
         <span class="title">{title}</span>
+        {local && (
+          <span class="local-badge" title="Running on this machine">
+            {local}
+          </span>
+        )}
         {tab.mutedInfo?.muted ? <Muted class="audio" /> : tab.audible ? <Audio class="audio" /> : null}
         <button
           class="hover-btn"
