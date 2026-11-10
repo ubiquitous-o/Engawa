@@ -12,6 +12,8 @@ export interface Settings {
   showTabs: boolean;
   /** パネルの下に Spotify の再生中の曲を表示する（接続しているときだけ出る） */
   showNowPlaying: boolean;
+  /** 再生中の曲をどこから読むか。'api' = Spotify Web API（どの端末の再生でも）、'app' = この Mac の Spotify アプリ（橋が要る） */
+  nowPlayingSource: 'api' | 'app';
   /** 再生中のジャケットの濃さ 0〜100。100 でそのまま、下げるとパネルの地に溶け込む */
   nowPlayingOpacity: number;
   /** アクセントカラー（CSS color） */
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showPR: true,
   showTabs: true,
   showNowPlaying: true,
+  nowPlayingSource: 'app',
   nowPlayingOpacity: 100,
   accentColor: '#6366f1',
   density: 'comfortable',

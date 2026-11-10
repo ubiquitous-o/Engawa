@@ -214,7 +214,7 @@ export function App() {
         )}
         {settings.showNowPlaying && <div class="now-playing-slot" ref={setArtHost} />}
       </main>
-      {settings.showNowPlaying && <NowPlaying artHost={artHost} />}
+      {settings.showNowPlaying && <NowPlaying artHost={artHost} source={settings.nowPlayingSource} />}
       {splitHint && (
         <div class="split-hint" role="status">
           <div class="split-hint-card">

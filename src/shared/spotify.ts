@@ -11,6 +11,8 @@ const SCOPES = 'user-read-playback-state user-modify-playback-state';
 
 const KEY_CLIENT_ID = 'spotifyClientId';
 const KEY_TOKENS = 'spotifyTokens';
+// 429 で断られたとき、次に呼んでよい時刻（ms）。パネルを開き直しても、それまでは呼ばない
+const KEY_BLOCKED_UNTIL = 'spotifyBlockedUntil';
 
 interface Tokens {
   accessToken: string;
@@ -56,6 +58,8 @@ export async function getSpotifyClientId(): Promise<string> {
 export async function setSpotifyClientId(id: string): Promise<void> {
   if (id) await chrome.storage.local.set({ [KEY_CLIENT_ID]: id });
   else await chrome.storage.local.remove(KEY_CLIENT_ID);
+  // 止められるのは Client ID ごと。ID を変えたら、前の ID の停止は忘れる
+  await chrome.storage.local.remove(KEY_BLOCKED_UNTIL);
 }
 
 async function getTokens(): Promise<Tokens | null> {
@@ -165,6 +169,11 @@ async function accessToken(force = false): Promise<string> {
 // ---- API ----
 
 async function api(method: string, path: string, retried = false): Promise<Response> {
+  // 断られている最中に呼び続けると、停止が延びるおそれがある。時刻が来るまでは呼ばない
+  const blocked = (await chrome.storage.local.get(KEY_BLOCKED_UNTIL))[KEY_BLOCKED_UNTIL] as number | undefined;
+  if (blocked && blocked > Date.now()) {
+    throw new SpotifyError('rate_limited', 'Spotify rate limit', Math.ceil((blocked - Date.now()) / 1000));
+  }
   const token = await accessToken();
   let res: Response;
   try {
@@ -177,7 +186,11 @@ async function api(method: string, path: string, retried = false): Promise<Respo
     return api(method, path, true);
   }
   if (res.status === 401) throw new SpotifyError('auth', 'Spotify sign-in expired. Connect again in the settings');
-  if (res.status === 429) throw new SpotifyError('rate_limited', 'Spotify rate limit', Number(res.headers.get('Retry-After')) || 5);
+  if (res.status === 429) {
+    const retryAfterS = Number(res.headers.get('Retry-After')) || 5;
+    await chrome.storage.local.set({ [KEY_BLOCKED_UNTIL]: Date.now() + retryAfterS * 1000 });
+    throw new SpotifyError('rate_limited', 'Spotify rate limit', retryAfterS);
+  }
   if (!res.ok) throw new SpotifyError('api', `Spotify API error (HTTP ${res.status})`);
   return res;
 }

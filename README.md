@@ -78,12 +78,32 @@ npm run build
 
 Spotify で再生中の曲のジャケットを、Tabs の一番下から操作ボタンの上までの空きに、縦のスリットスキャンで出す。再生位置にあたる横 1 行を縦に引き伸ばして余った高さを埋め、曲が進むとジャケットが下から上へ上がってくる（[StaaaaandBy](https://github.com/ubiquitous-o/StaaaaandBy) と同じ描き方）。一覧が長くて空きが横長になったときは横向きになり、ジャケットが右から左へ動く。収まらない曲名は 2 秒止まってから流れる。パネルの一番下には、曲名と「前の曲・再生/停止・次の曲」のボタンが出る。
 
+曲の読み取り元は、設定画面の Spotify カードの「Read from」で選ぶ。
+
+### この Mac の Spotify アプリから読む（macOS）
+
+Spotify アプリに直接聞く。Spotify のサーバには出ないので、API の登録もサインインも要らず、呼びすぎ制限も無い。見えるのはこの Mac のアプリで再生しているものだけ。
+
+拡張は Mac のアプリに直接話しかけられないので、小さな橋（[ネイティブメッセージング](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)のホスト）を一度だけ入れる。
+
+1. 設定画面の Spotify カードで「Spotify app on this Mac」を選び、**Copy install command** を押す。ターミナルに貼って Enter（拡張は自分ではファイルを置けないので、ここだけターミナルが要る。Engawa のフォルダから `bash native-host/install.sh` を実行しても同じ）
+2. ブラウザを再起動する
+3. 設定画面の **Check helper** で確かめる。初回は macOS が「ブラウザが Spotify を操作することを許可するか」を聞いてくる
+
+- 橋は `~/Library/Application Support/Engawa/engawa-spotify-host.py` に置かれ、入っている Chromium 系ブラウザ（Vivaldi、Chrome など）それぞれに登録される。使えるのは Engawa の拡張 ID だけ
+- 橋がするのは、AppleScript で Spotify アプリに曲名・アーティスト・ジャケットの URL・再生位置を聞くことと、再生・停止・曲送りを頼むことだけ。Spotify が起動していなければ起こさない
+- `/usr/bin/python3` を使う（Xcode Command Line Tools に入っている）。外すときは `bash native-host/install.sh --uninstall`
+
+### Spotify Web API から読む
+
+どの端末で再生していても見える。Spotify が呼び出しの回数を制限していて、超えると長いあいだ（数時間のこともある）止められる。止められているあいだは曲名の下に理由と再開までの時間が出る。
+
 1. [developer.spotify.com](https://developer.spotify.com/dashboard) で自分の Spotify アプリを作る（Web API）
 2. Engawa の設定画面の Spotify カードに出ている Redirect URI（`https://<拡張ID>.chromiumapp.org/spotify`）を、そのアプリの Redirect URIs に登録する
 3. Client ID を設定画面に貼って **Connect**
 
 - サインインは Authorization Code + PKCE で、クライアントシークレットは使わない。トークンと Client ID は端末内（storage.local）だけに置き、`accounts.spotify.com` と `api.spotify.com` にしか送らない
-- どの端末で再生していても、アカウントの再生状態を 2 秒ごとに取りに行く（パネルが見えているあいだだけ）。ボタンは再生中の端末に対して効く。操作には Premium が必要
+- どの端末で再生していても、アカウントの再生状態を 5 秒ごとと曲の変わり目に取りに行く（パネルが見えているあいだだけ）。ボタンは再生中の端末に対して効く。操作には Premium が必要
 - 設定の「Show now playing」でオフに、「Artwork strength」でジャケットの濃さを変えられる
 
 ## Google Meet の自動ピクチャー イン ピクチャー

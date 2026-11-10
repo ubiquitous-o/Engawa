@@ -78,12 +78,32 @@ The tab list overlaps with Chrome's native vertical tabs, so it can be turned of
 
 The album art of whatever is playing on Spotify fills the space between the end of the tab list and the playback buttons as a vertical slit-scan: the row at the playback position is stretched to fill the spare height, and the artwork rises from bottom to top as the track plays (the same drawing as [StaaaaandBy](https://github.com/ubiquitous-o/StaaaaandBy)). When the list is long and the space left is wider than tall, it switches to a horizontal scan with the artwork moving right to left. Titles that do not fit pause for 2 seconds and then scroll. The bottom of the panel shows the title with previous / play-pause / next buttons.
 
+Choose where the track is read from with "Read from" in the Spotify card of the options page.
+
+### Read from the Spotify app on this Mac (macOS)
+
+Asks the Spotify app directly. Nothing goes to Spotify's servers, so there is no API registration, no sign-in and no rate limit. Only what plays in the app on this Mac is shown.
+
+An extension cannot talk to a Mac app directly, so a small helper (a [native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging) host) is installed once.
+
+1. In the Spotify card of the options page, pick "Spotify app on this Mac" and press **Copy install command**. Paste it into Terminal and press Enter (an extension cannot place files by itself, so this one step needs Terminal; running `bash native-host/install.sh` from the Engawa folder does the same)
+2. Restart the browser
+3. Press **Check helper** in the options. The first time, macOS asks whether the browser may control Spotify
+
+- The helper is copied to `~/Library/Application Support/Engawa/engawa-spotify-host.py` and registered for each installed Chromium browser (Vivaldi, Chrome, …). Only Engawa's extension ID may use it
+- All it does is ask the Spotify app, via AppleScript, for the title, artist, artwork URL and position, and send play / pause / next / previous. It never launches Spotify
+- It uses `/usr/bin/python3` (part of the Xcode Command Line Tools). To remove it: `bash native-host/install.sh --uninstall`
+
+### Read from the Spotify Web API
+
+Shows playback on any device. Spotify limits how often it may be called, and going over can block the app for a long time (sometimes hours). While blocked, the reason and the time until the next try are shown under the title.
+
 1. Create your own Spotify app at [developer.spotify.com](https://developer.spotify.com/dashboard) (Web API)
 2. Register the redirect URI shown in the Spotify card of Engawa's options (`https://<extension id>.chromiumapp.org/spotify`) in that app
 3. Paste the Client ID into the options and press **Connect**
 
 - Sign-in is Authorization Code + PKCE with no client secret. Tokens and the Client ID stay on this device (storage.local) and are only sent to `accounts.spotify.com` and `api.spotify.com`
-- Playback state is polled every 2 seconds while the panel is visible, whichever device is playing. The buttons act on the playing device and need Premium
+- Playback state is polled every 5 seconds and at track changes while the panel is visible, whichever device is playing. The buttons act on the playing device and need Premium
 - Turn it off with "Show now playing" in the options, and fade the artwork with "Artwork strength"
 
 ## Automatic picture-in-picture for Google Meet

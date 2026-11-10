@@ -942,6 +942,11 @@ input {
   font-size: 11px;
   color: var(--fg-muted);
 }
+/* Spotify から取れていないときの理由。アーティスト名の場所に出す */
+.now-playing-problem {
+  font-style: italic;
+}
+
 .now-playing-controls {
   flex: none;
   display: flex;

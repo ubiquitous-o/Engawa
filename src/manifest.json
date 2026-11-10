@@ -47,7 +47,8 @@
     "notifications",
     "favicon",
     "scripting",
-    "identity"
+    "identity",
+    "nativeMessaging"
   ],
   "host_permissions": [
     "https://api.github.com/*",

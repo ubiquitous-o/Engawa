@@ -19,6 +19,7 @@ import {
   setSpotifyClientId,
   spotifyRedirectUri,
 } from '@shared/spotify';
+import { getAppPlayback } from '@shared/spotifyApp';
 import { applyTheme } from '@shared/theme';
 import {
   ACCENT_PRESETS,
@@ -97,6 +98,8 @@ function Options() {
   const [spotifyId, setSpotifyId] = useState('');
   const [spotifyOn, setSpotifyOn] = useState(false);
   const [spotifyMsg, setSpotifyMsg] = useState<{ cls: string; text: string } | null>(null);
+  // Mac の Spotify アプリから読む橋が、いま答えているか
+  const [helper, setHelper] = useState<{ cls: string; text: string } | null>(null);
   // 設定画面を拡張の外でプレビューするときは chrome.identity が無い
   const redirectUri = typeof chrome.identity?.getRedirectURL === 'function' ? spotifyRedirectUri() : '';
 
@@ -120,6 +123,33 @@ function Options() {
 
   const flash = () => setSaved(Date.now());
 
+  // 拡張はファイルを置いたりコマンドを実行したりできないので、橋を入れる最初の 1 回だけは
+  // ターミナルが要る。同梱の 2 つのファイルを丸ごと含んだコマンドを作って、貼るだけにする
+  const copyInstallCommand = async () => {
+    const b64 = async (path: string) => {
+      const bytes = new Uint8Array(await (await fetch(chrome.runtime.getURL(path))).arrayBuffer());
+      let s = '';
+      for (const b of bytes) s += String.fromCharCode(b);
+      return btoa(s);
+    };
+    try {
+      const [host, install] = await Promise.all([b64('native-host/engawa-spotify-host.py'), b64('native-host/install.sh')]);
+      const cmd = `D=$(mktemp -d) && echo '${host}' | base64 -D > "$D/engawa-spotify-host.py" && echo '${install}' | base64 -D > "$D/install.sh" && bash "$D/install.sh"`;
+      await navigator.clipboard.writeText(cmd);
+      setHelper({ cls: 'ok', text: 'Copied. Paste it into Terminal and press Enter, then restart the browser' });
+    } catch {
+      setHelper({ cls: 'error', text: 'Could not copy the command' });
+    }
+  };
+  const checkHelper = async () => {
+    setHelper({ cls: '', text: 'Checking…' });
+    try {
+      const p = await getAppPlayback();
+      setHelper({ cls: 'ok', text: p ? `Helper works · ${p.isPlaying ? 'playing' : 'paused'}: ${p.title}` : 'Helper works · nothing is playing in the Spotify app' });
+    } catch (e) {
+      setHelper({ cls: 'error', text: e instanceof Error ? e.message : 'Helper did not answer' });
+    }
+  };
   const connectToSpotify = async () => {
     setSpotifyMsg({ cls: '', text: 'Waiting for Spotify…' });
     try {
@@ -289,6 +319,37 @@ function Options() {
 
       <div class="card">
         <h2>Spotify</h2>
+        <div class="fav-size">
+          <div>
+            <div class="label">Read from</div>
+            <div class="hint">
+              The Spotify app reads this Mac's app directly: no API, no sign-in, no rate limit, but only what plays on this Mac. The Web API shows playback on any
+              device and needs the Client ID below.
+            </div>
+          </div>
+          <select
+            class="folder-select"
+            value={settings.nowPlayingSource}
+            onChange={(e) => void patch({ nowPlayingSource: (e.target as HTMLSelectElement).value === 'app' ? 'app' : 'api' })}
+            aria-label="Read from"
+          >
+            <option value="app">Spotify app on this Mac</option>
+            <option value="api">Spotify Web API</option>
+          </select>
+        </div>
+        {settings.nowPlayingSource === 'app' && (
+          <div class="field">
+            <div class="hint">
+              Needs a small helper, installed once (macOS only). An extension cannot install it by itself: copy the command, paste it into Terminal, press
+              Enter, then restart the browser. The first time, macOS asks to let the browser control Spotify.
+            </div>
+            <div class="inline" style="margin-top:8px">
+              <button class="primary" onClick={() => void copyInstallCommand()}>Copy install command</button>
+              <button onClick={() => void checkHelper()}>Check helper</button>
+            </div>
+            {helper && <div class={`status ${helper.cls}`}>{helper.text}</div>}
+          </div>
+        )}
         <div class="field">
           <label for="spotify-id">Client ID</label>
           <input
