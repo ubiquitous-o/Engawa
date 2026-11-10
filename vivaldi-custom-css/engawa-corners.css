@@ -1,0 +1,19 @@
+/*
+ * Vivaldi のカスタム CSS。ページの角の丸みを、テーマ設定のスライダー上限（14）より大きくする。
+ *
+ * 前提: テーマ → エディター → カラー → 「Unified」を選んでいること。
+ *       ページの角が丸く切り抜かれるのは、その統合デザインのときだけ。
+ *
+ * 入れ方:
+ *   1. vivaldi://experiments で「Allow CSS modifications」をオン
+ *   2. 設定 → 外観 → 「オリジナルカスタム UI」の「フォルダーを選択…」で、このファイルがあるフォルダ（vivaldi-custom-css）を選ぶ
+ *   3. Vivaldi を再起動
+ *
+ * --radius は Vivaldi が「角を丸くする」の値から入れている変数。ページの切り抜きだけでなく
+ * 入力欄やボタンの丸みにも使われるので、数字を上げるとそれらも一緒に丸くなる。
+ * 数字を変えたら Vivaldi を再起動する。
+ */
+#browser {
+  --radius: 20px !important;
+  --radiusHalf: 10px !important;
+}

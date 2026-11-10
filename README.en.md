@@ -95,6 +95,19 @@ The "Background" card in the options page builds an Arc-style background.
 
 The accent color (selection rings, badges) is chosen separately. Light/dark follows the OS.
 
+## Rounding the page corners in Vivaldi
+
+For when the window is rounded but the page inside is square. This is done in Vivaldi, not in Engawa.
+
+1. Settings → Themes → Editor → "Colors" tab → Coloring Mode: pick **Unified**. The page corners are only cut round in this unified design
+2. In the editor's "Settings" tab, set "Corner Rounding" (maximum 14)
+3. To go beyond 14, load [vivaldi-custom-css/engawa-corners.css](vivaldi-custom-css/engawa-corners.css) as custom CSS
+   1. Turn on "Allow CSS modifications" in `vivaldi://experiments`
+   2. Settings → Appearance → Custom UI Modifications → "Select Folder…", and pick this repository's `vivaldi-custom-css/` folder
+   3. Restart Vivaldi
+
+   Change the radius with `--radius` in the file (20px by default) and keep `--radiusHalf` at half of it, then restart. Input fields and buttons use the same value, so they change too. To undo, clear the folder setting
+
 ## Chrome limitations
 
 - **The tab strip and the address bar cannot be hidden by an extension.** Chrome's native vertical tabs feature removes the horizontal tab strip, nothing more. Vivaldi can hide both in its settings
@@ -103,6 +116,7 @@ The accent color (selection rings, badges) is chosen separately. Light/dark foll
 ## Layout
 
 ```
+vivaldi-custom-css/        # custom CSS for Vivaldi (rounded page corners); not part of the extension
 src/
   manifest.json
   background/index.ts     # startup, alarms, message handling

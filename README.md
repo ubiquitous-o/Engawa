@@ -95,6 +95,19 @@ Chrome は Meet のタブを離れると自動で小窓を出し、戻ると閉�
 
 アクセントカラー（選択枠やバッジの色）は背景とは別に選べる。ライト／ダークは OS の設定に追従する。
 
+## Vivaldi でページの角を丸くする
+
+ウィンドウは角丸なのにページが四角いままなのが気になるときの設定。Engawa ではなく Vivaldi 側で行う。
+
+1. 設定 → テーマ → エディター → 「カラー」タブの色の付け方（Coloring Mode）で **Unified** を選ぶ。ページの四隅が丸く切り抜かれるのは、この統合デザインのときだけ
+2. 同じエディターの「設定」タブの「角を丸くする」で半径を決める（上限 14）
+3. 14 より大きくしたいときは、[vivaldi-custom-css/engawa-corners.css](vivaldi-custom-css/engawa-corners.css) をカスタム CSS として読み込む
+   1. `vivaldi://experiments` で「Allow CSS modifications」をオン
+   2. 設定 → 外観 → 「オリジナルカスタム UI」の「フォルダーを選択…」で、このリポジトリの `vivaldi-custom-css/` フォルダを選ぶ
+   3. Vivaldi を再起動する
+
+   半径はファイルの中の `--radius`（既定 20px）で変える。`--radiusHalf` はその半分にする。変えたら再起動。入力欄やボタンの丸みも同じ値を使うので一緒に変わる。やめるときはフォルダの指定を外す
+
 ## Chrome 側の制約
 
 - **タブバー・URL バーは拡張から隠せない**。Chrome の縦タブ機能でタブバーだけは横から消せる。Vivaldi なら設定で両方とも隠せる
@@ -103,6 +116,7 @@ Chrome は Meet のタブを離れると自動で小窓を出し、戻ると閉�
 ## 構成
 
 ```
+vivaldi-custom-css/        # Vivaldi 用のカスタム CSS（ページの角丸）。拡張本体には含まれない
 src/
   manifest.json
   background/index.ts     # 起動処理、alarms、メッセージ受付
