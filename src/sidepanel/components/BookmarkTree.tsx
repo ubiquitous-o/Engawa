@@ -128,7 +128,8 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     if (!payload || !d || d.id !== target.id) return;
     if (payload.kind === 'tab' && !isWebUrl(payload.url)) return; // 拡張機能ページなどはブックマークにしない
     if (payload.kind === 'tab') {
-      if (d.pos === 'into') await chrome.bookmarks.create({ parentId: target.id, title: payload.title, url: payload.url });
+      // フォルダに落としたものは先頭に入れる（開いたときすぐ見える場所）
+      if (d.pos === 'into') await chrome.bookmarks.create({ parentId: target.id, title: payload.title, url: payload.url, index: 0 });
       else {
         const index = (target.index ?? 0) + (d.pos === 'after' ? 1 : 0);
         await chrome.bookmarks.create({ parentId: target.parentId, title: payload.title, url: payload.url, index });
@@ -138,7 +139,7 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
     if (payload.id === target.id) return;
     if (isDescendant(map, target.id, payload.id)) return; // 自分の中には入れない
     if (d.pos === 'into') {
-      await chrome.bookmarks.move(payload.id, { parentId: target.id });
+      await chrome.bookmarks.move(payload.id, { parentId: target.id, index: 0 });
       toggle(target.id, true);
     } else {
       // chrome.bookmarks.move の index は「移動前の並びでこの位置の前に挿入」

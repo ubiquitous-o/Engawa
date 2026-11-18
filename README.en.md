@@ -57,7 +57,7 @@ To release, bump `version` in `package.json` and push a `v`-prefixed tag; GitHub
 | Click a favorite tile | Switch to its tab if one exists, otherwise open a new one. Open items show a dot |
 | Right-click a favorite | Restore original URL / Close tab / Remove from favorites (moves to Other bookmarks) / Delete |
 | Drag a tab or bookmark onto favorites | Add to that folder or reorder. With several folders, right-click "Add to favorites" lists one entry per folder |
-| Drag a tab onto the bookmark tree | Drop on a folder to add inside it, between rows to add next to them, or on the drop zone below to append to the bookmarks bar |
+| Drag a tab onto the bookmark tree | Drop on a folder to add at the top of it, between rows to add next to them, or on the drop zone below to append to the bookmarks bar |
 | Drag a bookmark | Reorder or move into a folder |
 | "+" in the Bookmarks header | Create a new folder |
 | Right-click a bookmark or folder → Delete | Delete it. In Vivaldi it goes to the Trash (Vivaldi ignores extension deletes of Speed Dial folders, so those are moved to the Trash instead). Right-click the Trash → "Empty trash" |
