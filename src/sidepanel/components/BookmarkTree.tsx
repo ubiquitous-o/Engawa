@@ -9,7 +9,8 @@ import { addToFavoritesItems } from '../lib/favMenu';
 import { NEW_FOLDER_EVENT, notice } from '../lib/notice';
 import { openBookmark, openUrl, wantsBackground, type FavoriteIndex } from '../lib/open';
 import { Favicon } from './Favicon';
-import { Chevron, Star } from './Icons';
+import { Collapse } from './Collapse';
+import { Folder, FolderOpen, Star } from './Icons';
 
 interface Props {
   /** ツリー全体のルート（ブックマークバーの特定や祖先判定に使う） */
@@ -323,8 +324,8 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
           }}
           onDrop={(e) => void handleDrop(e, node)}
         >
-          {isFolder ? <Chevron /> : <span style="width:12px;flex:none" />}
-          <Favicon url={node.url} />
+          {/* 矢印は置かない。フォルダは絵そのものが開閉を表す */}
+          {isFolder ? isOpen ? <FolderOpen class="fav folder" /> : <Folder class="fav folder" /> : <Favicon url={node.url} />}
           {renaming === node.id ? (
             <RenameInput initial={node.title} onCommit={(v) => void commitRename(node.id, v)} onCancel={() => setRenaming(null)} />
           ) : (
@@ -333,14 +334,18 @@ export function BookmarkTree({ root, treeRoot, favoritesFolders, favIndex, windo
           {isFolder && favoritesFolderIds.includes(node.id) && <Star class="star" />}
           {isFolder && !isOpen && <span class="count">{node.children?.length ?? 0}</span>}
         </div>
-        {isFolder && isOpen && node.children && (
-          <div class="tree-children" style={{ '--indent': `${indent}px` } as Record<string, string>}>
-            {node.children.length === 0 ? (
-              <div class="empty-note" style={{ paddingLeft: `${indent + 26}px` }}>Empty</div>
-            ) : (
-              node.children.map((c) => renderNode(c, depth + 1))
+        {isFolder && node.children && (
+          <Collapse open={isOpen}>
+            {() => (
+              <div class="tree-children" style={{ '--indent': `${indent}px` } as Record<string, string>}>
+                {node.children!.length === 0 ? (
+                  <div class="empty-note" style={{ paddingLeft: `${indent + 14}px` }}>Empty</div>
+                ) : (
+                  node.children!.map((c) => renderNode(c, depth + 1))
+                )}
+              </div>
             )}
-          </div>
+          </Collapse>
         )}
       </div>
     );

@@ -569,6 +569,38 @@ input {
   user-select: text;
 }
 
+/* 開閉の動き（Collapse）。高さは 0fr ↔ 1fr で伸び縮みさせる。
+   開くときは速く出て静かに止まり、閉じるときは少し短く */
+.collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 140ms ease-out;
+}
+.collapse.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease-out 40ms;
+}
+.collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+/* 動き終わったら切り抜きをやめる（ドロップ先の線やフォーカスの枠が欠けないように） */
+.collapse.settled > .collapse-inner {
+  overflow: visible;
+}
+@media (prefers-reduced-motion: reduce) {
+  .collapse,
+  .collapse.open {
+    transition: none;
+  }
+}
+
 .tree-children {
   position: relative;
 }
