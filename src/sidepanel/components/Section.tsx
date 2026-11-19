@@ -1,5 +1,4 @@
 import type { ComponentChildren } from 'preact';
-import { Chevron } from './Icons';
 
 interface Props {
   title: string;
@@ -18,7 +17,6 @@ export function Section({ title, count, countAlert, collapsed, onToggle, actions
     <section class={`section ${collapsed ? 'collapsed' : ''}`}>
       <div class="section-head">
         <button class="section-toggle" onClick={onToggle} aria-expanded={!collapsed}>
-          <Chevron />
           <span>{title}</span>
           {count !== undefined && <span class={`section-count ${countAlert ? 'alert' : ''}`}>{count}</span>}
           {meta && <span class="pr-meta" style="margin-left:auto">{meta}</span>}
