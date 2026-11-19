@@ -16,7 +16,11 @@ export async function leaveViaPip(windowId: number | undefined, goingToTabId?: n
       // （失敗の見分けが確実でなく、出ても利用者にできることが無いため）
       // 一度開いてから閉じた場合（すぐ Meet に戻った、自分で閉じた）は失敗ではない
       const opened = status.includes('open=true') || status.includes('opened-by=');
-      if (opened) console.debug('[engawa] meet pip:', result, status);
+      // 会議に入っていない Meet のページ（待合室、トップ、退出後）には小窓にするものが無い。失敗ではない
+      const nothingToShow = status.includes('handler=no') && status.includes('no-video');
+      // 切り替えてすぐ Meet に戻ったので途中でやめた。これも失敗ではない
+      const cancelled = status.includes('cancelled');
+      if (opened || nothingToShow || cancelled) console.debug('[engawa] meet pip:', result, status);
       else console.warn('[engawa] meet pip did not open:', result, status);
     });
   }, 4000);

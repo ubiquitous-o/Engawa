@@ -148,16 +148,29 @@
   //  2. 隠れているように見せて呼ぶ
   //  3. いちばん大きい映像 1 枚を小窓にする
   // Meet の画面のボタンを代わりに押す、という手は使わない（画面が変わると壊れるし、勝手に UI を操作したくない）
+  //
+  // 途中で close() が来たら（切り替えてすぐ Meet に戻ったとき）、そこで打ち切る。
+  // 打ち切らないと、戻ったあとに小窓が開いたり、隠れたふりが残ったりする
+  let cancelled = false;
+  const abandon = () => {
+    last += ' cancelled';
+    endPretend();
+    const w = docPip();
+    if (w) w.close();
+  };
   const attempt = async () => {
     if (handler) {
       await callHandler('now');
-      if (await waitOpen(200)) {
+      const openedNow = await waitOpen(200);
+      if (cancelled) return abandon();
+      if (openedNow) {
         last += ' opened-by=now';
         return;
       }
       pretendHidden();
       await callHandler('pretend-hidden');
       await waitOpen(500);
+      if (cancelled) return abandon();
       const w = docPip();
       if (w) {
         last += ' opened-by=pretend-hidden';
@@ -205,10 +218,13 @@
   window.__engawaPip = {
     // すぐ戻る（'already' / 'started'）。結果は少し後で status() に聞く
     open() {
+      // 小窓が無いのに隠れたふりが残っていたら、まず本当の状態に戻す（閉じた知らせが届かなかったときの保険）
+      if (!attempting && stopPretending && !docPip()) endPretend();
       if (isOpen()) return 'already';
       // 前の試みがまだ途中なら、重ねて始めない（Ctrl+Tab を続けて押したとき、二度押ししたとき）
       if (attempting) return 'started';
       attempting = true;
+      cancelled = false;
       activationAtOpen = navigator.userActivation ? String(navigator.userActivation.isActive) : 'unknown';
       last = 'steps:';
       void attempt().finally(() => {
@@ -223,6 +239,7 @@
       return `open=${isOpen()} kind=${kind} handler=${handler ? 'yes' : 'no'} activation=${activationAtOpen}/${nowActive} ${last} videos=${videos} hidden=${document.hidden} key-opens=${keyOpens}`;
     },
     close() {
+      if (attempting) cancelled = true;
       endPretend();
       const w = docPip();
       if (w) {
