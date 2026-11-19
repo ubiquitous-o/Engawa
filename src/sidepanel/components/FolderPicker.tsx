@@ -2,7 +2,7 @@ import { setFavoritesFolderIds } from '@shared/storage';
 import { openContextMenu, type MenuItem } from '../lib/contextMenu';
 import { favoritesFolderTitle } from '../lib/favMenu';
 import type { BookmarkNode } from '../lib/hooks';
-import { Chevron, Folder } from './Icons';
+import { Folder } from './Icons';
 
 interface Props {
   root: BookmarkNode;
@@ -48,7 +48,6 @@ export function FolderPicker({ root, selected }: Props) {
     <button class="pill-btn" title="Choose folders to show as favorites" onClick={open}>
       <Folder />
       <span class="title">{label}</span>
-      <Chevron />
     </button>
   );
 }
