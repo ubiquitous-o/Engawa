@@ -103,9 +103,15 @@
   };
 
   // Vivaldi は裏に回ったタブを「隠れた」ことにしない（document.hidden が false のまま）。
-  // Meet の関数は隠れているときだけ小窓を開くので、呼ぶあいだだけ隠れているように見せる。
-  // Vivaldi 8.3 で確認: そのまま呼ぶと何も開かず、こうして呼ぶと Meet 本来の小窓（Document PiP）が開く
-  const withHiddenPretended = async (fn) => {
+  // Meet の関数は隠れているときだけ小窓を開くので、隠れているように見せて呼ぶ。
+  // Vivaldi 8.3 で確認: そのまま呼ぶと何も開かず、こうして呼ぶと Meet 本来の小窓（Document PiP）が開く。
+  //
+  // 小窓が開いたあとも、閉じるまで隠れたふりを続ける。
+  // ふりを始めるときとやめるときには「見え方が変わった」という知らせ（visibilitychange）も送る。
+  // 知らせを送らずに呼ぶと、複数人の会議で小窓は開くのに中身が 1 つも入らず、真っ白になった（Vivaldi 8.3 で確認）。
+  let stopPretending = null;
+  const pretendHidden = () => {
+    if (stopPretending) return;
     const restore = [];
     const pretend = (obj, key, value) => {
       try {
@@ -117,11 +123,24 @@
     };
     pretend(document, 'hidden', true);
     pretend(document, 'visibilityState', 'hidden');
-    try {
-      await fn();
-    } finally {
+    stopPretending = () => {
+      stopPretending = null;
       for (const undo of restore) undo();
+      announceVisibility();
+    };
+    // Chrome が本当にタブを隠すときは、まず「見え方が変わった」という知らせが飛び、そのあと小窓の依頼が来る。
+    // Meet は知らせを受けて自分の状態を切り替えているようなので、同じ順で知らせる
+    announceVisibility();
+  };
+  const announceVisibility = () => {
+    try {
+      document.dispatchEvent(new Event('visibilitychange'));
+    } catch (_) {
+      // 知らせられなくても続ける
     }
+  };
+  const endPretend = () => {
+    if (stopPretending) stopPretending();
   };
 
   // 順に試す。Engawa はこれを待たずにタブを切り替える。操作の権利は数秒しか残らないので手早く
@@ -136,10 +155,17 @@
         last += ' opened-by=now';
         return;
       }
-      await withHiddenPretended(async () => {
-        await callHandler('pretend-hidden');
-        await waitOpen(500);
-      });
+      pretendHidden();
+      await callHandler('pretend-hidden');
+      await waitOpen(500);
+      const w = docPip();
+      if (w) {
+        last += ' opened-by=pretend-hidden';
+        // 小窓が閉じたら（自分で閉じた、Meet に戻って Engawa が閉じた）、ふりをやめる
+        w.addEventListener('pagehide', endPretend);
+        return;
+      }
+      endPretend();
       if (isOpen()) {
         last += ' opened-by=pretend-hidden';
         return;
@@ -164,6 +190,7 @@
   // でも、キーを押したこと自体が「本物の操作」なので、キーがこのページに届くなら、ここで開ける。
   // ブラウザがキーをページに渡さずに自分で処理する場合は届かず、何も起きない（Chrome はそう）。
   let keyOpens = 0;
+  let attempting = false;
   window.addEventListener(
     'keydown',
     (e) => {
@@ -179,9 +206,14 @@
     // すぐ戻る（'already' / 'started'）。結果は少し後で status() に聞く
     open() {
       if (isOpen()) return 'already';
+      // 前の試みがまだ途中なら、重ねて始めない（Ctrl+Tab を続けて押したとき、二度押ししたとき）
+      if (attempting) return 'started';
+      attempting = true;
       activationAtOpen = navigator.userActivation ? String(navigator.userActivation.isActive) : 'unknown';
       last = 'steps:';
-      void attempt();
+      void attempt().finally(() => {
+        attempting = false;
+      });
       return 'started';
     },
     status() {
@@ -191,6 +223,7 @@
       return `open=${isOpen()} kind=${kind} handler=${handler ? 'yes' : 'no'} activation=${activationAtOpen}/${nowActive} ${last} videos=${videos} hidden=${document.hidden} key-opens=${keyOpens}`;
     },
     close() {
+      endPretend();
       const w = docPip();
       if (w) {
         w.close();

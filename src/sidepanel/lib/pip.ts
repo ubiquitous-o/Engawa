@@ -15,7 +15,7 @@ export async function leaveViaPip(windowId: number | undefined, goingToTabId?: n
       // 経過はコンソールにだけ残す。開けなかったときもパネルには出さない
       // （失敗の見分けが確実でなく、出ても利用者にできることが無いため）
       // 一度開いてから閉じた場合（すぐ Meet に戻った、自分で閉じた）は失敗ではない
-      const opened = status.startsWith('open=true') || status.includes('opened-by=');
+      const opened = status.includes('open=true') || status.includes('opened-by=');
       if (opened) console.debug('[engawa] meet pip:', result, status);
       else console.warn('[engawa] meet pip did not open:', result, status);
     });
