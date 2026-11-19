@@ -113,7 +113,8 @@ Chrome pops Meet out into a picture-in-picture window when you leave its tab and
 - While you are on Meet, clicking a tab, favorite or bookmark in Engawa opens Meet's picture-in-picture window just before switching
 - Returning to the Meet tab closes it (however you return)
 - The window's size is remembered and reused the next time it opens (Meet otherwise resets it to its small default). Its position is remembered too: right after it opens, the extension puts the window back where it was, at the same size (a page cannot set the position itself; this also keeps the size right on another monitor)
-- Opening the window needs a real user action, so switching with Vivaldi's own tab bar or shortcuts does not open it
+- Switching with Ctrl+Tab / Ctrl+Shift+Tab opens it too, as long as focus is in the Meet page or in the Engawa panel (the key press reaches them; verified in Vivaldi. Chrome does not pass this key to pages, so it has no effect there)
+- Opening the window needs a real user action, so clicking Vivaldi's own tab bar, or using a shortcut while focus is in the address bar, does not open it
 - This uses the `scripting` permission and access to `meet.google.com`; no other site is touched
 - After updating the extension, reload any open Meet tab once
 

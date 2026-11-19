@@ -159,6 +159,22 @@
     }
   };
 
+  // キーボードでタブを切り替えるとき（Ctrl+Tab / Ctrl+Shift+Tab）。
+  // このときは Engawa のパネルを通らないので、パネルからは小窓を開けない。
+  // でも、キーを押したこと自体が「本物の操作」なので、キーがこのページに届くなら、ここで開ける。
+  // ブラウザがキーをページに渡さずに自分で処理する場合は届かず、何も起きない（Chrome はそう）。
+  let keyOpens = 0;
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      if (e.key !== 'Tab' || !e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      keyOpens++;
+      console.debug('[engawa] meet pip: Ctrl+Tab reached the page');
+      window.__engawaPip.open();
+    },
+    true,
+  );
+
   window.__engawaPip = {
     // すぐ戻る（'already' / 'started'）。結果は少し後で status() に聞く
     open() {
@@ -172,7 +188,7 @@
       const videos = document.querySelectorAll('video').length;
       const nowActive = navigator.userActivation ? navigator.userActivation.isActive : 'unknown';
       const kind = docPip() ? 'document' : document.pictureInPictureElement ? 'video' : 'none';
-      return `open=${isOpen()} kind=${kind} handler=${handler ? 'yes' : 'no'} activation=${activationAtOpen}/${nowActive} ${last} videos=${videos} hidden=${document.hidden}`;
+      return `open=${isOpen()} kind=${kind} handler=${handler ? 'yes' : 'no'} activation=${activationAtOpen}/${nowActive} ${last} videos=${videos} hidden=${document.hidden} key-opens=${keyOpens}`;
     },
     close() {
       const w = docPip();

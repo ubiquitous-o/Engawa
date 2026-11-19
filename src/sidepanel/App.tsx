@@ -8,6 +8,7 @@ import { NEW_FOLDER_EVENT, NOTICE_EVENT } from './lib/notice';
 import { probeVivaldiTiling, splitTabs, verticalSplitPossible, type SplitSide } from './lib/split';
 import { installKeyboard } from './lib/keyboard';
 import { favoritesFolderTitle } from './lib/favMenu';
+import { leaveViaPip } from './lib/pip';
 import { useBookmarkChildrenOf, useBookmarkRootId, useBookmarkTree, useCurrentWindowId, useFavoritesFolders, useSettings, type BookmarkNode } from './lib/hooks';
 import { buildFavoriteIndex } from './lib/open';
 import { BookmarkTree } from './components/BookmarkTree';
@@ -89,6 +90,18 @@ export function App() {
       window.removeEventListener('resize', measure);
       setOutsideHoverHandler(null);
     };
+  }, [windowId]);
+  // キーボードでタブを切り替えるとき（Ctrl+Tab / Ctrl+Shift+Tab）も Meet の小窓を開く。
+  // Engawa でタブを選んだ直後はフォーカスがパネルに残っていて、キーはページではなくここへ届く。
+  // キーを押したことが「本物の操作」になるので、クリックのときと同じ道で開ける。
+  // フォーカスが Meet のページの中にあるときは、ページ側（public/meet-pip.js）が同じキーを拾う
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      void leaveViaPip(windowId);
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [windowId]);
   // Meet の小窓が開けなかったときなどの一言も、同じ場所に出す
   useEffect(() => {
