@@ -227,7 +227,10 @@
       cancelled = false;
       activationAtOpen = navigator.userActivation ? String(navigator.userActivation.isActive) : 'unknown';
       last = 'steps:';
-      void attempt().finally(() => {
+      // 試みが終わらないことがある（映像 1 枚の小窓の依頼が、成功も失敗も返さないまま止まる）。
+      // 終わるのを待ち続けると、それ以降の open() が全部ここで弾かれて、二度と開かなくなる。
+      // 長くても 2 秒で次を受け付ける
+      void Promise.race([attempt(), sleep(2000)]).finally(() => {
         attempting = false;
       });
       return 'started';
